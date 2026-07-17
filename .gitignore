@@ -1,0 +1,14 @@
+# Datos locales (en producción viven en el disco persistente de Render)
+datos/
+# Documentación generada (se regenera en cada build con construir-conocimiento.js)
+documentacion/
+# Config local del notificador (lleva credenciales)
+notificador/notificador-config.json
+# Varios
+*.log
+node_modules/
+.DS_Store
+
+# Videos pesados (GitHub limita a 100MB)
+public/img/mascota.mov
+*.mov

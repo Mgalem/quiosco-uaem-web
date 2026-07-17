@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <script src="auth-visitante.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Licenciatura en Administración - EESA</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@48,400,0,0" />
+    
+    <style>
+        :root {
+            --bg-bottom: #f4f6f9;
+            --uaem-blue: #9b2c2c; /* Azul institucional */
+            --color-red: #9b2c2c; /* Color de Administración */
+            --text-main: #000000; /* Letras negras */
+            --card-bg: #ffffff;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Montserrat', sans-serif; }
+
+        body { background-color: var(--bg-bottom); display: flex; flex-direction: column; min-height: 100vh; user-select: none; overflow-x: hidden; }
+
+        /* BARRA SUPERIOR AZUL OSCURO PARA QUE EL TEXTO BLANCO SE VEA */
+        .top-bar { display: flex; justify-content: space-between; align-items: center; background-color: var(--uaem-blue); padding: 0 40px; height: 120px; box-shadow: 0 2px 15px rgba(0,0,0,0.1); position: relative; z-index: 10; }
+        
+        /* FONDOS BLANCOS PARA LOS LOGOS */
+        .logo-img { max-height: 80px; width: auto; object-fit: contain; background-color: white; padding: 5px; border-radius: 10px; }
+        
+        /* TÍTULO EN BLANCO */
+        .header-title h1 { font-size: 1.6rem; color: white; text-transform: uppercase; font-weight: 700; text-align: center; }
+
+        .hero { height: 30vh; display: flex; flex-direction: column; justify-content: center; padding: 0 60px; position: relative; overflow: hidden; }
+        .hero video { position: absolute; top: 50%; left: 50%; min-width: 100%; min-height: 100%; width: auto; height: auto; transform: translate(-50%, -50%); z-index: -2; object-fit: cover; }
+        
+        /* Capa oscura EN ROJO CON OPACIDAD */
+        .hero-overlay { 
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+            background: linear-gradient(rgba(155, 44, 44, 0.85), rgba(155, 44, 44, 0.95)); 
+            z-index: -1; 
+        }
+        
+        .hero-text { border-left: 5px solid white; padding-left: 25px; color: white; z-index: 2; }
+        .hero-text h2 { font-size: 3rem; font-weight: 700; margin-bottom: 5px; }
+        .hero-text p { font-size: 1.2rem; opacity: 0.9; }
+
+        .btn-regresar.btn-hero {
+            display: flex; align-items: center; gap: 10px; background-color: white; color: var(--uaem-blue); text-decoration: none;
+            padding: 15px 30px; border-radius: 50px; font-weight: 700; font-size: 1.1rem; position: absolute; right: 60px; top: 50%; transform: translateY(-50%); z-index: 10;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3); transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+        .btn-regresar.btn-hero:hover { transform: translateY(-55%) scale(1.05); box-shadow: 0 15px 35px rgba(0,0,0,0.4); }
+
+        /* CORRECCIÓN: max-width cambiado a 1200px (antes 100px) */
+        .carrera-content { display: flex; gap: 40px; padding: 50px; width: 100%; max-width: 1200px; margin: 0 auto; flex-grow: 1; }
+        .info-menu-v { width: 300px; display: flex; flex-direction: column; gap: 15px; flex-shrink: 0; }
+        
+        .info-item-v {
+            background-color: var(--card-bg); border-radius: 15px; padding: 20px 25px; color: var(--text-main); display: flex; align-items: center; gap: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05); transition: all 0.3s ease; cursor: pointer;
+            border: 2px solid transparent; border-left: 5px solid transparent;
+        }
+
+        .info-item-v:hover:not(.active) { background-color: #f0f7ff; border-left-color: var(--color-red); }
+
+        /* ESTADO ACTIVO: LETRAS BLANCAS */
+        .info-item-v.active { background-color: var(--color-red); box-shadow: 0 10px 25px rgba(32, 77, 141, 0.3); border-left-color: rgba(255,255,255,0.6); }
+        .info-item-v.active h3, .info-item-v.active p { color: #ffffff !important; }
+
+        .icon-box-v { width: 50px; height: 50px; border-radius: 10px; display: flex; align-items: center; justify-content: center; background-color: #f0f4f8; color: var(--color-red); }
+        .info-item-v.active .icon-box-v { background-color: rgba(255,255,255,0.25); color: white; }
+        .icon-box-v span { font-size: 2rem; }
+
+        .info-item-v h3 { font-size: 1.1rem; color: #1a202c; font-weight: 700; margin-bottom: 2px; }
+        .info-item-v p { font-size: 0.85rem; color: #4a5568; line-height: 1.2; }
+
+        .info-panels-v { flex-grow: 1; position: relative; }
+        .info-panel { background-color: var(--card-bg); border-radius: 20px; padding: 45px; box-shadow: 0 15px 40px rgba(0,0,0,0.1); display: none; animation: fadeInV 0.4s ease-out; }
+        .info-panel.active { display: block; }
+        .panel-title { font-size: 2.2rem; color: var(--uaem-blue); font-weight: 700; margin-bottom: 30px; display: inline-block; padding-bottom: 12px; position: relative; }
+        .panel-title::after { content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 3px; background: linear-gradient(90deg, var(--color-red), transparent); border-radius: 2px; }
+        .panel-body { font-size: 1.1rem; color: var(--text-main); line-height: 1.7; }
+
+        .scroll-box { max-height: 560px; overflow-y: auto; background: #f8fafc; border-radius: 12px; padding: 18px; border: 1px solid #e2e8f0; scrollbar-width: thin; scrollbar-color: var(--color-red) #e2e8f0; }
+        .scroll-box::-webkit-scrollbar { width: 6px; }
+        .scroll-box::-webkit-scrollbar-track { background: #e2e8f0; border-radius: 3px; }
+        .scroll-box::-webkit-scrollbar-thumb { background: var(--color-red); border-radius: 3px; }
+
+        .kiosk-table { width: 100%; border-collapse: collapse; background: white; text-align: center; }
+        .kiosk-table th { background-color: var(--uaem-blue); color: white; padding: 15px; font-weight: 600; }
+        .kiosk-table td { padding: 12px; border-bottom: 1px solid #e2e8f0; }
+
+                /* --- ESTILO EXACTO PARA LA TABLA DE TEMPORALIDAD --- */
+        .tabla-temporalidad { 
+            width: 100%; 
+            border-collapse: collapse; 
+            text-align: center; 
+            background: white;
+            border: 2px solid #9b2c2c; /* Borde roja exterior */
+        }
+        .tabla-temporalidad th, .tabla-temporalidad td { 
+            border: 1px solid #9b2c2c; /* Líneas divisorias roja */
+            padding: 12px; 
+        }
+        /* Fila roja principal */
+        .tabla-temporalidad .head-red th { 
+            background-color: #9b2c2c; 
+            color: white; 
+            font-size: 1.1rem; 
+            font-weight: 700; 
+        }
+        /* Fila blanca secundaria */
+        .tabla-temporalidad .head-blanco th { 
+            background-color: white; 
+            color: #333; 
+            font-weight: 600; 
+            font-size: 1rem; 
+        }
+        .tabla-temporalidad td { 
+            font-size: 1.1rem; 
+            color: black; 
+        }
+
+        /* CLASE PARA EVITAR QUE LA TABLA ROMPA EL DISEÑO */
+        .tabla-responsiva { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+        /* --- MAPA CURRICULAR BLOQUES --- */
+        .mapa-grid-bloques { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 25px; }
+        .materia-bloque-card { background-color: white; border-radius: 15px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; }
+        .materia-bloque-header { background-color: var(--color-red); color: white; padding: 15px 20px; font-weight: 700; font-size: 1.2rem; display: flex; align-items: center; gap: 10px; }
+        .materia-bloque-body { padding: 20px; }
+        .materia-bloque-body ul { list-style: none; padding-left: 0; }
+        .materia-bloque-body li { padding: 10px 0; border-bottom: 1px solid #e2e8f0; color: var(--uaem-blue); font-weight: 600; font-size: 1.05rem; display: flex; align-items: center; gap: 10px; }
+        .materia-bloque-body li:last-child { border-bottom: none; }
+        .materia-item-icon { color: var(--color-red); opacity: 0.7; font-size: 1.3rem; }
+
+        /* Contenedor PDF */
+        .pdf-embed-container { width: 100%; height: 600px; border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden; }
+
+        @keyframes fadeInV { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+
+        /* --- FOOTER INFERIOR EN ROJO Y LETRAS BLANCAS --- */
+        .bottom-footer {
+            margin-top: auto; background-color: var(--color-red); color: #ffffff;
+            text-align: center; padding: 25px; font-size: 1rem; display: flex;
+            justify-content: center; align-items: center; gap: 10px; font-weight: 600;
+        }
+        .bottom-footer span { color: #ffffff; }
+
+        /* --- MEDIA QUERY PARA MONITOR VERTICAL (PORTRAIT) --- */
+        @media screen and (orientation: portrait){
+            .carrera-content {
+                flex-direction: column;
+                padding: 30px;
+                gap: 20px;
+            }
+
+            .info-menu-v {
+                width: 100%;
+                flex-direction: row;
+                overflow-x: auto;
+                padding-bottom: 15px;
+            }
+
+            .info-item-v {
+                min-width: 260px;
+                flex-shrink: 0;
+            }
+
+            .info-panels-v {
+                width: 100%;
+            }
+
+            .btn-regresar.btn-hero {
+                position: absolute;
+                transform: none;
+                align-self: flex-start;
+                margin-top: -50px;
+            }
+            
+            .hero {
+                padding: 40px 30px;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="responsive.css">
+</head>
+<body>
+
+    <header class="top-bar">
+        <img src="img/logo-uaem.png" alt="Logo UAEM" class="logo-img">
+        <div class="header-title"><h1>ESCUELA DE ESTUDIOS SUPERIORES DE ATLATLAHUCAN SUBSEDE TOTOLAPAN</h1></div>
+        <img src="img/logo-eesa.png" alt="Logo EESA" class="logo-img">
+    </header>
+
+    <section class="hero">
+        <video autoplay loop playsinline><source src="img/fondo-universidad.mp4" type="video/mp4"></video>
+        <div class="hero-overlay"></div>
+        <div class="hero-text"><h2>Lic. en Administración</h2><p>Información detallada del programa educativo.</p></div>
+        <a href="programas.html" class="btn-regresar btn-hero"><span class="material-symbols-outlined">arrow_back</span>REGRESAR</a>
+    </section>
+
+    <main class="carrera-content">
+        
+        <nav class="info-menu-v">
+            <div class="info-item-v active" onclick="showPanel('info-general', this)">
+                <div class="icon-box-v"><span class="material-symbols-outlined">auto_stories</span></div>
+                <div><h3>Información General</h3><p>Estructura general.</p></div>
+            </div>
+
+            <div class="info-item-v" onclick="showPanel('perfil-ingreso', this)">
+                <div class="icon-box-v"><span class="material-symbols-outlined">login</span></div>
+                <div><h3>Perfil de Ingreso</h3><p>Habilidades requeridas.</p></div>
+            </div>
+
+            <div class="info-item-v" onclick="showPanel('perfil-egreso', this)">
+                <div class="icon-box-v"><span class="material-symbols-outlined">verified_user</span></div>
+                <div><h3>Perfil de Egreso</h3><p>Competencias y habilidades.</p></div>
+            </div>
+
+            <div class="info-item-v" onclick="showPanel('requisitos-egreso', this)">
+                <div class="icon-box-v"><span class="material-symbols-outlined">receipt_long</span></div>
+                <div><h3>Requisitos de Egreso</h3><p>Para concluir el plan.</p></div>
+            </div>
+
+            <div class="info-item-v" onclick="showPanel('campo-laboral', this)">
+                <div class="icon-box-v"><span class="material-symbols-outlined">work</span></div>
+                <div><h3>Campo Laboral</h3><p>Áreas de desempeño profesional.</p></div>
+            </div>
+
+            <div class="info-item-v" onclick="showPanel('mapa', this)">
+                <div class="icon-box-v"><span class="material-symbols-outlined">table_chart</span></div>
+                <div><h3>Mapa Curricular</h3><p>Plan de estudios en bloques.</p></div>
+            </div>
+
+            <div class="info-item-v" onclick="showPanel('mapa-pdf', this)">
+                <div class="icon-box-v"><span class="material-symbols-outlined">picture_as_pdf</span></div>
+                <div><h3>Mapa Curricular PDF</h3><p>Abrir archivo original.</p></div>
+            </div>
+        </nav>
+
+        <section class="info-panels-v">
+            
+            <div id="info-general" class="info-panel active">
+                   <div class="panel-body">
+                    <h3 class="panel-title">Información General</h3>
+                    <div class="scroll-box">
+                        <ul style="margin-left: 20px;">
+                                <h3>Prácticas Formativas</h3>
+                                <p>Dos momentos de prácticas formativas (sin valor en créditos), el primero a partir del 3er semestre y el segundo a partir del 4to semestre, cada uno con una duración de entre 80 horas como mínimo y hasta 144 horas como máximo.</p>
+                                <br>
+                                <h3>Materias y Créditos</h3>
+                                <p>Está integrado por ocho semestres con un total de 51 unidades de aprendizaje obligatorias, de las cuales 3 son transversales multimodales; y 4 son optativas de profundización. </p>
+                                <br>
+                                <p>Los créditos totales del plan de estudios son 399, equivalentes a un total de 266 horas, de las cuales 255 corresponden a las unidades de aprendizaje (136 horas teóricas y 119 horas prácticas); 3 horas teóricas de tutorías y 8 horas prácticas de formación integral.</p>
+                                
+                                <div class="tabla-responsiva" style="margin-top: 20px;">
+                                 <table class="tabla-temporalidad">
+
+                                        
+                                        <thead>
+                                            
+                                            <tr class="head-red">
+                                            <th>Ciclo Formativo</th>
+                                            <th>Cantidad</th>
+                                            <th>Hrs Teóricas</th>
+                                            <th>Hrs Prácticas</th>
+                                            <th>Créditos</th>
+                                            <th>Porcentaje</th>
+                                        </tr>
+                                    </thead>
+
+                                        </tr>
+                                        <tbody>
+                                            <tr>
+                                                <td>Básico</td>
+                                                <td>21</td>
+                                                <td>53</td>
+                                                <td>52</td>
+                                                <td>161</td>
+                                                <td>40.35%</td>
+                                            </tr>
+                                            <tr><td>Profesional</td>
+                                                <td>24</td>
+                                                <td>66</td>
+                                                <td>54</td>
+                                                <td>190</td>
+                                                <td>47.61%</td>
+                                            </tr>
+                                            <tr><td>Especializado</td>
+                                                <td>6</td>
+                                                <td>17</td>
+                                                <td>13</td>
+                                                <td>48</td>
+                                                <td>12.03%</td>
+                                            </tr>
+
+                                            <tr style="font-weight:bold; background:#e2e8f0;"><td>Totales</td>
+                                                <td>51</td>
+                                                <td>136</td>
+                                                <td>119</td>
+                                                <td>399</td>
+                                                <td>100%</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            <br>
+                            <h3> inglés</h3>
+                            <p>Se establecerá como requisito de egreso que las y los estudiantes acrediten en la licenciatura como mínimo el nivel A2 del Marco Común Europeo de Referencia para las Lenguas, que es el estándar internacional que define la competencia lingüística.</p>
+                            <li>1. Cada estudiante durante el primer semestre (de preferencia al inicio) deberá presentar de manera obligatoria el examen diagnóstico en los diferentes planteles de la Dirección de Lenguas (CELE) o presentar su constancia de certificación internacional 1, para que el CELE la valide, (de no ser validada, deberán presentar el examen referido).</li>
+                            <li>2. Las y los estudiantes que comprueben mediante alguna de las dos formas anteriores en el primer semestre que cuentan con el nivel A2 no estarán obligados a asistir, ni acreditar los cursos de inglés que oferta el CELE o su unidad académica.</li>
+                            <li>3. El estudiantado que no pueda acreditar el nivel A2 en el primer semestre deberá, de forma obligatoria, inscribirse y acreditar todos los cursos semestrales de inglés acordes a su nivel, durante su trayectoria académica que oferta el CELE hasta acreditar en el examen diagnóstico el nivel A2 o superior.</li>
+                            <li>4. En los casos en los que el estudiantado elija cursar el idioma en otra institución, para no deber cursar en el CELE las clases de inglés, deberá comprobar su competencia lingüística presentando el documento que avale la certificación internacional del nivel A2. El CELE hará la validación de la certificación internacional que presente cada estudiante, comprobando el nivel A2 como mínimo.</li>
+                            <li>5. Será requisito obligatorio de egreso contar con el nivel A2.</li>
+                            <br>
+                            <h3> Formación integral</h3>
+                            <p>La formación integral contempla 8 créditos que equivalen a 128 horas, que se llevan a cabo del primero al octavo semestre a lo largo del ciclo básico, profesional y especializado, donde cada estudiante cubrirá 16 horas por semestre, con valor de 1 crédito.</p>
+                            <br>
+                            <h3>Tutorías</h3>
+                            <p>Asignar un tutor o tutora grupal (grupo escolar), en los semestres en los que se considera como obligatoria (1°, 4° y 7°), en el caso de los demás semestres (2°, 3°, 5°, 6° y 8°), aun cuando la tutoría no esté incluida en el mapa curricular se implementan acciones que garanticen la oferta de acompañamiento (académico, en contexto, asesoría orientación y consejería) con el apoyo de los PITC y PTC a lo largo de la trayectoria, sólo que se trabajan con esquemas flexibles tutoría individual o grupos pequeños, talleres complementarios etc. </p>
+
+
+
+                        </ul>
+                    </div>
+                     </div>
+                 </div>
+
+             <div id="perfil-ingreso" class="info-panel">
+                <h3 class="panel-title">Perfil de Ingreso</h3>
+                <div class="panel-body">
+                    <p>Es deseable que las personas egresadas del nivel medio superior que aspiren a ingresar la Licenciatura en Administración, cuenten con el perfil de egreso que determina el Modelo Educativo para la Educación Obligatoria del Nivel Medio Superior Educar para la libertad y la creatividad, establecido por la Secretaría de Educación Pública. </p>
+                    <div class="scroll-box">
+                        <ul style="margin-left: 20px;">
+                            <li>Lenguaje y Comunicación.</li>
+                            <li>Pensamiento Matemático.</li>
+                            <li>Exploración y Comprensión del Mundo Natural y Social.</li>
+                            <li>Pensamiento Crítico y Solución de Problemas.</li>
+                            <li>Habilidades Socioemocionales y Proyecto de Vida.</li>
+                            <li>Colaboración y Trabajo en Equipo.</li>
+                            <li>Convivencia y Ciudadanía.</li>
+                            <li>Apreciación y Expresión Artísticas.</li>
+                            <li>Atención al Cuerpo y la Salud.</li>
+                            <li>Cuidado del Medio Ambiente.</li>
+                            <li>Habilidades Digitales.</li>
+                        </ul>
+                    </div>
+                </div>
+             </div>
+
+             <div id="requisitos-egreso" class="info-panel">
+                <h3 class="panel-title">Requisitos de Egreso</h3>
+                <div class="panel-body">
+                    <div class="scroll-box">
+                        <ul style="margin-left: 20px;">
+                            <li>Cubrir el 100% de los créditos, además de las actividades académicas correspondientes (artístico-culturales, deportivas, de internacionalización, entre otras) que establece el plan de estudios. </li>
+                            <li>Presentar constancia de cumplimiento de Prácticas Formativas.</li>
+                            <li>Presentar constancia de cumplimiento de Prácticas Profesionales.</li>
+                            <li>Presentar carta de cumplimiento del Servicio Social.</li>
+                            <li>Entregar documento con validez oficial que acredite el nivel A2 del idioma inglés expedido por el Centro de Lenguas (CELE) de la UAEM.</li>
+                            <li>Presentar constancia de cumplimiento de la Formación Integral.</li>
+                            <li>Presentar constancia de cumplimiento de Tutorías.</li>
+                        </ul>
+                    </div>
+                </div>
+             </div>
+
+             <div id="perfil-egreso" class="info-panel">
+                <h3 class="panel-title">Perfil de Egreso</h3>
+                <div class="panel-body">
+                    <p>El egresado desarrolla competencias genéricas y específicas, destacando:</p>
+                    <div class="scroll-box">
+                        <ul style="margin-left: 20px;">
+
+                            <h3>Generación y aplicación de conocimiento  </h3>
+                            <li>CG1. Capacidad para el aprendizaje de forma autónoma. </li>
+                            <li>CG2. Capacidad de pensamiento crítico y reflexivo. </li>
+                            <li>CG3. Capacidad crítica y autocrítica. </li>
+                            <li>CG4. Capacidad de abstracción, análisis y síntesis. </li>
+                            <li>CG5. Capacidad de aprender y actualizarse permanentemente. </li>
+                            <li>CG6. Capacidad para la investigación. </li>
+                            <li>CG7. Capacidad de comunicación en un segundo idioma.</li>
+                            <li>CG8. Capacidad creativa. </li>
+                            <li>CG9. Capacidad de comunicación oral y escrita. </li>
+                            <li>CG10. Habilidades en el uso de las tecnologías de la información y de la comunicación. </li>
+                            <li>CG11. Habilidades para buscar, procesar y analizar información.</li>
+                            <br>
+                            <h3>Aplicables en contexto. </h3>
+                            <li>CG12. Habilidad para el trabajo en forma colaborativa. </li>
+                            <li>CG13. Habilidad para trabajar en forma autónoma. </li>
+                            <li>CG14. Capacidad de aplicar los conocimientos en la práctica. </li>
+                            <li>CG15. Capacidad para formular y gestionar proyectos. </li>
+                            <li>CG16. Capacidad para identificar, plantear y resolver problemas. </li>
+                            <li>CG17. Capacidad de motivar y conducir hacia metas comunes. </li>
+                            <li>CG18. Capacidad para tomar decisiones. </li>
+                            <li>CG19. Capacidad para actuar en nuevas situaciones. </li>
+                            <li>CG20. Conocimiento sobre el área de estudio y la profesión. </li>
+                            <br>
+                            <h3>Sociales </h3>
+                            <li>CG21. Capacidad de expresión y comunicación. </li>
+                            <li>CG22. Participación con responsabilidad social. </li>
+                            <li>CG23. Capacidad para organizar y planificar el tiempo. </li>
+                            <li>CG24. Capacidad de trabajo en equipo. </li>
+                            <li>CG25. Habilidades interpersonales. </li>
+                            <li>CG26. Habilidades para trabajar en contextos culturales diversos. </li>
+                            <br>
+                            <h3>Éticas </h3>
+                            <li>CG27. Autodeterminación y cuidado de sí. </li>
+                            <li>CG28. Compromiso ciudadano.</li>
+                            <li>CG29. Compromiso con la preservación del medio ambiente. </li>
+                            <li>CG30. Compromiso con su medio sociocultural. </li>
+                            <li>CG31. Valoración y respeto por la diversidad y la multiculturalidad. </li>
+                            <li>CG32. Compromiso con la calidad. </li>
+                            <li>CG33. Compromiso ético.</li>
+                            <br>
+                            <h3>Competencias Específicas </h3>
+                            <li>CE1. Desarrolla el proceso de planeación a través de las diferentes teorías administrativas de conformidad con el contexto de la organización y sus características particulares para la formulación de estrategias y tácticas que gestionen el cumplimiento de los objetivos organizacionales. </li>
+                            <li>CE2. Produce sinergias empresariales mediante la gestión de recursos humanos, financieros y materiales para enfocarse al logro de los resultados esperados alineando las áreas funcionales de la organización. </li>
+                            <li>CE3. Diseña, administra y gestiona los sistemas logísticos, productivos y de seguimiento mediante la instrumentación, implementación y control de procesos eficientes para que impacten en la cadena de valor de las organizaciones y en la evaluación estratégica de los objetivos planteados versus los resultados obtenidos. </li>
+                            <li>CE4. Integra la organización con el entorno con base en los aspectos éticos y culturales del medio en el cual se desarrolla para su adaptación. </li>
+                            <li>CE5. Analiza, diseña, optimiza e implementa la estructura, operatividad y gestión organizacional apoyándose en sistemas de información efectivos y en el uso de las tecnologías de la información y la comunicación, así como de la alineación de las estrategias para lograr su eficiencia. </li>
+                            <li>CE6. Gestiona los procesos de innovación a través de acciones y actividades creativas que favorezcan generar soluciones novedosas para los desafíos actuales. </li>
+                            <li>CE7. Diseña, implementa y evalúa procesos de comercialización a través del análisis de técnicas y modelos de mercado para que se identifiquen a los tipos de clientes y/o demandantes de servicios que interactúan con la organización.</li>
+                            <li>CE8. Identifica y evalúa la viabilidad de oportunidades de negocios, productos y/o prestación de servicios mediante modelos de análisis para su aprovechamiento. </li>
+                            <li>CE9. Analiza, diseña e implementa modelos y procesos de negocio a través del uso de herramientas empresariales para orientarlos hacia la competitividad. </li>
+                            <li>CE10. Gestiona el marco jurídico pertinente al componente administrativo y empresarial mediante la definición de contratos, convenios, alianzas y documentos legales con diferentes actores y entidades para garantizar el respeto al estado de derecho en que se rige la organización y la consecución de los objetivos establecidos. </li>
+                            <li>CE11. Gestiona decisiones de inversión, financiamiento y proyectos integrales éticamente responsables con base en el aprovechamiento de las oportunidades financieras y recursos disponibles, así como del análisis de los sistemas de información (internos-externos) para una adecuada actuación y logro de los objetivos de la organización. </li>
+                            <li>CE12. Orienta a la organización hacia la creación de valor económico a partir de modelos de valoración y riesgo para una eficiente toma de decisiones y rentabilidad empresarial. </li>
+                            <li>CE13. Lidera y administra el talento humano con valores a través de la aplicación de técnicas de liderazgo y motivación para el logro y consecución de los objetivos de la organización. </li>
+                            <li>CE14. Desarrolla y mantiene la cultura de la organización en el marco de la misión y visión, con valores, definiendo políticas en el bien ser y hacer de los procesos organizacionales para su posicionamiento y diferenciación. </li>
+                            <li>CE15. Aplica modelos matemáticos mediante el uso de técnicas y herramientas de control que permitan analizar situaciones reales de la organización para una adecuada toma de decisiones y mejora continua. </li>
+                            <li>CE16. Investiga conocimientos científicos mediante métodos, técnicas y tipos de investigación para resolver problemas y explicar fenómenos que se presentan en la organización. </li>
+                            <li>CE17. Comprende, comunica y describe, de forma oral y escrita frases y expresiones de uso cotidiano en el idioma inglés mediante intercambios sencillos y directos de información básica para relacionarse en situaciones conocidas o habituales y aspectos de su entorno.</li>
+                        </ul>
+                    </div>
+                </div>
+             </div>
+
+             <div id="campo-laboral" class="info-panel">
+                <h3 class="panel-title">Campo Laboral</h3>
+                <div class="panel-body">
+                    <p>El egresado de la Licenciatura en Administración cuenta con la capacidad de diseñar, dirigir y gestionar organizaciones, lo que le permite desempeñarse en múltiples sectores:</p>
+                    <div class="scroll-box">
+                        <ul style="margin-left: 20px;">
+                            <h3>Dirección y gerencia</h3>
+                            <li>Direcciones generales y áreas funcionales: Recursos Humanos, Mercadotecnia, Finanzas, Operaciones.</li>
+                            <li>Planeación estratégica y cambio organizacional.</li>
+                            <li>Diagnóstico y diseño organizacional.</li>
+                            <li>Liderazgo por valores y administración del talento humano.</li>
+                            <br>
+                            <h3>Mercadotecnia y comercialización</h3>
+                            <li>Estudio de mercado y comportamiento del consumidor.</li>
+                            <li>Mercadotecnia internacional y comercio internacional.</li>
+                            <li>Industria 4.0 aplicada a la administración.</li>
+                            <li>Administración de empresas virtuales y modelos de negocio digitales.</li>
+                            <br>
+                            <h3>Finanzas y administración fiscal</h3>
+                            <li>Finanzas corporativas, presupuesto de capital y matemáticas financieras.</li>
+                            <li>Administración fiscal y sueldos y prestaciones.</li>
+                            <li>Auditoría administrativa y certificación de la calidad.</li>
+                            <br>
+                            <h3>Sector público, social y emprendimiento</h3>
+                            <li>Administración pública en sectores social y gubernamental.</li>
+                            <li>Administración turística y de recursos materiales.</li>
+                            <li>Emprendimiento y creación de negocio propio.</li>
+                            <li>Consultoría empresarial independiente.</li>
+                            <li>Simuladores de negocios y proyectos de innovación.</li>
+                            <li>Docencia e investigación con estudios de posgrado.</li>
+                        </ul>
+                    </div>
+                </div>
+             </div>
+
+             <div id="mapa" class="info-panel">
+                <h3 class="panel-title">Mapa Curricular</h3>
+                <div class="panel-body">
+                    <div class="scroll-box mapa-grid-bloques" style="max-height: 550px;">
+                        
+                        <div class="materia-bloque-card">
+                            <div class="materia-bloque-header">PRIMER SEMESTRE</div>
+                            <div class="materia-bloque-body">
+                                <ul>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Fundamentos de la Administración</li>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> TIC para las Organizaciones</li>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Introducción al Derecho</li>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Macroeconomía</li>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Introducción a la Contaduría</li>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Metodología de la Investigación</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="materia-bloque-card">
+                            <div class="materia-bloque-header">SEGUNDO SEMESTRE</div>
+                            <div class="materia-bloque-body">
+                                <ul>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Proceso Administrativo</li>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> TIC Aplicada a Contabilidad</li>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Derecho Mercantil</li>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Microeconomía</li>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Matemáticas para la Administración</li>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Métodos Estadísticos</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="materia-bloque-card">
+                            <div class="materia-bloque-header">TERCER SEMESTRE</div>
+                            <div class="materia-bloque-body">
+                                <ul>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Administración de Costos</li>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Derecho Laboral</li>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Desarrollo Empresarial</li>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Modelos de Negocio</li>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Matemáticas Financieras</li>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Comportamiento Organizacional</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="materia-bloque-card">
+                            <div class="materia-bloque-header">CUARTO SEMESTRE</div>
+                            <div class="materia-bloque-body">
+                                <ul>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Gestión del Conocimiento e Innovación</li>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Administración Turística</li>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Administración de Empresas Virtuales</li>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Mercadotecnia</li>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Finanzas</li>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Admón. del Capital Humano</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="materia-bloque-card">
+                            <div class="materia-bloque-header">QUINTO SEMESTRE</div>
+                            <div class="materia-bloque-body">
+                                <ul>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Admón. de Recursos Materiales</li>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Diagnóstico y Diseño Organizacional</li>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Procesos Productivos</li>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Comportamiento del Consumidor</li>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Administración Fiscal</li>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Capacitación del Capital Humano</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="materia-bloque-card">
+                            <div class="materia-bloque-header">SEXTO SEMESTRE</div>
+                            <div class="materia-bloque-body">
+                                <ul>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Planeación y Cambio Estratégico</li>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Certificación de la Calidad</li>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Estudio de Mercado</li>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Emprendimiento</li>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Presupuesto de Capital</li>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Sueldos y Prestaciones</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="materia-bloque-card">
+                            <div class="materia-bloque-header">SÉPTIMO SEMESTRE</div>
+                            <div class="materia-bloque-body">
+                                <ul>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Administración e Industria 4.0</li>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Auditoría Administrativa</li>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Mercadotecnia Internacional</li>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Comercio Internacional</li>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Simulador de Negocios</li>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Liderazgo por Valores</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="materia-bloque-card">
+                            <div class="materia-bloque-header">OCTAVO SEMESTRE</div>
+                            <div class="materia-bloque-body">
+                                <ul>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Admón. en Sectores Social y Público</li>
+                                    <li><span class="material-symbols-outlined materia-item-icon">star</span> Optativa de Profundización I</li>
+                                    <li><span class="material-symbols-outlined materia-item-icon">star</span> Optativa de Profundización II</li>
+                                    <li><span class="material-symbols-outlined materia-item-icon">star</span> Optativa de Profundización III</li>
+                                    <li><span class="material-symbols-outlined materia-item-icon">star</span> Optativa de Profundización IV</li>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Seminario de Investigación</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+             </div>
+
+             <div id="mapa-pdf" class="info-panel">
+                <h3 class="panel-title">Mapa Curricular </h3>
+                <div class="panel-body">
+                    <p style="margin-bottom: 20px;">A continuación se muestra el archivo PDF oficial del plan de estudios.</p>
+                    <div class="pdf-embed-container">
+                        <embed src="img/Plan de estudios de la Licenciatura en Administración_2021.pdf" type="application/pdf" width="100%" height="100%" />
+                    </div>
+                </div>
+            </div>
+
+        </section>
+    </main>
+
+    <footer class="bottom-footer">
+        <span class="material-symbols-outlined">location_on</span>
+        ESCUELA DE ESTUDIOS SUPERIORES DE ATLATLAHUCAN SUBSEDE TOTOLAPAN
+    </footer>
+
+    <script>
+        function showPanel(idPanel, itemClickeado) {
+            const paneles = document.querySelectorAll('.info-panel');
+            paneles.forEach(p => p.classList.remove('active'));
+
+            const items = document.querySelectorAll('.info-item-v');
+            items.forEach(i => i.classList.remove('active'));
+
+            document.getElementById(idPanel).classList.add('active');
+            itemClickeado.classList.add('active');
+        }
+
+        let tiempoInactividad;
+        function regresarPortada() { window.location.href = 'portada.html'; }
+        function reiniciarTemporizador() {
+            clearTimeout(tiempoInactividad);
+            tiempoInactividad = setTimeout(regresarPortada, 600000); 
+        }
+        window.onload = reiniciarTemporizador;
+        document.onmousemove = reiniciarTemporizador;
+        document.onkeypress = reiniciarTemporizador;
+        document.ontouchstart = reiniciarTemporizador; 
+        document.onclick = reiniciarTemporizador;
+    </script>
+    <script>window.UAEM_PAGE_AREA = 'programa-educativo';</script>
+    <script src="config.js"></script>
+    <script src="chatbot.js"></script>
+</body>
+</html>

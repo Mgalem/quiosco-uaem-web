@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel Administrativo UAEM</title>
+<style>
+  :root{ --azul:#003366; --azul2:#005599; --azul-osc:#001433; --rojo:#c0392b; --verde:#2e7d32;
+         --bg:#eef2f8; --card:#fff; --txt:#1a2638; --muted:#64748b; --linea:#e2e8f0; }
+  *{ box-sizing:border-box; font-family:'Segoe UI',system-ui,sans-serif; }
+  body{ margin:0; background:var(--bg); color:var(--txt); }
+  .oculto{ display:none !important; }
+  button{ cursor:pointer; font-family:inherit; }
+  input,select,textarea{ font-family:inherit; font-size:.92rem; }
+
+  /* ── LOGIN ── */
+  #login{ min-height:100vh; background:linear-gradient(135deg,#001a3d,#003366 60%,#00284d);
+          display:flex; align-items:center; justify-content:center; padding:20px; }
+  #login .caja{ background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12);
+    border-radius:18px; padding:40px 36px; width:100%; max-width:380px; text-align:center;
+    box-shadow:0 25px 60px rgba(0,0,0,.4); backdrop-filter:blur(4px); }
+  #login .venado{ font-size:52px; }
+  #login h1{ color:#fff; margin:10px 0 2px; font-size:1.7rem; }
+  #login p.sub{ color:#9bb6d4; margin:0 0 24px; font-size:.85rem; }
+  #login label{ display:block; text-align:left; color:#cdd9ea; font-size:.8rem; font-weight:600; margin:14px 0 5px; }
+  #login input{ width:100%; padding:12px 14px; border-radius:10px; border:1px solid rgba(255,255,255,.15);
+    background:rgba(0,20,45,.55); color:#fff; outline:none; }
+  #login input:focus{ border-color:#1e90ff; }
+  #login button{ width:100%; margin-top:22px; padding:13px; border:none; border-radius:10px;
+    background:linear-gradient(135deg,#1e90ff,#0066cc); color:#fff; font-weight:700; font-size:1rem; }
+  #login .foot{ color:#7d97b8; font-size:.72rem; margin-top:20px; line-height:1.5; }
+  #login .err{ color:#ff8a80; font-size:.82rem; margin-top:14px; min-height:18px; }
+
+  /* ── APP ── */
+  header{ background:linear-gradient(135deg,var(--azul-osc),var(--azul) 60%,var(--azul2));
+    color:#fff; padding:14px 26px; display:flex; align-items:center; gap:14px;
+    position:sticky; top:0; z-index:20; box-shadow:0 3px 14px rgba(0,0,0,.2); }
+  header .venado{ font-size:30px; }
+  header h1{ font-size:1.15rem; margin:0; font-weight:700; }
+  header .sub{ font-size:.72rem; color:#9bb6d4; }
+  header .der{ margin-left:auto; display:flex; align-items:center; gap:12px; }
+  header .nombre{ font-weight:600; font-size:.9rem; }
+  .badge{ background:#dbe7f5; color:var(--azul); border-radius:14px; padding:3px 12px; font-size:.72rem; font-weight:700; }
+  header .salir{ background:rgba(255,255,255,.14); color:#fff; border:none; border-radius:8px; padding:7px 14px; font-weight:600; font-size:.82rem; }
+  header .salir:hover{ background:rgba(255,255,255,.26); }
+
+  nav{ background:#fff; border-bottom:1px solid var(--linea); padding:0 26px; display:flex; gap:4px; position:sticky; top:60px; z-index:15; }
+  nav button{ background:none; border:none; padding:16px 18px; font-weight:600; color:var(--muted); font-size:.92rem; border-bottom:3px solid transparent; }
+  nav button.act{ color:var(--azul); border-bottom-color:#1e90ff; }
+  nav .cont-badge{ background:#ff5252; color:#fff; border-radius:10px; padding:1px 7px; font-size:.7rem; margin-left:6px; }
+
+  main{ max-width:1120px; margin:0 auto; padding:22px 26px 70px; }
+  .controles{ display:flex; gap:12px; margin-bottom:18px; flex-wrap:wrap; }
+  .controles select,.controles input{ padding:10px 14px; border:1px solid var(--linea); border-radius:10px; outline:none; background:#fff; }
+  .controles input{ flex:1; min-width:220px; }
+  .vacio{ background:#fff; border-radius:14px; padding:60px 20px; text-align:center; color:#7a8aa0; box-shadow:0 3px 12px rgba(0,0,0,.05); }
+  .vacio .em{ font-size:44px; display:block; margin-bottom:10px; }
+
+  .card{ background:var(--card); border-radius:14px; padding:18px 20px; margin-bottom:14px; box-shadow:0 3px 12px rgba(0,0,0,.06); border-left:5px solid var(--linea); }
+  .card.pend{ border-left-color:#ff9800; }
+  .card.ok{ border-left-color:var(--verde); }
+  .meta{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; font-size:.74rem; color:var(--muted); margin-bottom:8px; }
+  .chip{ background:#eef2ff; color:#4338ca; padding:2px 10px; border-radius:12px; font-weight:700; }
+  .preg{ font-size:1.05rem; font-weight:600; margin:2px 0 10px; }
+  .intento{ background:#f4f6fc; border-radius:8px; padding:10px 12px; font-size:.83rem; color:#46546b; white-space:pre-wrap; }
+  .resp-txt{ background:#e8f5e9; border-radius:8px; padding:10px 12px; font-size:.9rem; color:#1b5e20; white-space:pre-wrap; margin-top:6px; }
+  textarea{ width:100%; margin-top:12px; border:1px solid var(--linea); border-radius:8px; padding:10px; resize:vertical; min-height:66px; outline:none; }
+  textarea:focus{ border-color:#1e90ff; }
+  .acciones{ display:flex; gap:10px; margin-top:10px; flex-wrap:wrap; }
+  .btn{ border:none; border-radius:8px; padding:9px 16px; font-weight:700; font-size:.83rem; }
+  .btn-p{ background:linear-gradient(135deg,#1e90ff,#0066cc); color:#fff; }
+  .btn-g{ background:#e2e8f0; color:#3a4a63; }
+  .btn-r{ background:#fdecea; color:var(--rojo); }
+  .btn-v{ background:#e8f5e9; color:var(--verde); }
+
+  .panel-form{ background:#fff; border-radius:14px; padding:22px 24px; box-shadow:0 3px 12px rgba(0,0,0,.06); border-left:5px solid var(--verde); margin-bottom:26px; }
+  .panel-form h3{ margin:0 0 16px; color:var(--azul); }
+  .grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:14px; }
+  .grid label{ font-size:.78rem; font-weight:600; color:var(--muted); display:block; margin-bottom:5px; }
+  .grid input,.grid select{ width:100%; padding:10px 12px; border:1px solid var(--linea); border-radius:8px; outline:none; }
+  h2.sec{ color:var(--azul); font-size:1.15rem; margin:6px 0 14px; }
+
+  .doc-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:16px; }
+  .doc-card{ background:#fff; border-radius:14px; padding:18px 20px; box-shadow:0 3px 12px rgba(0,0,0,.06); }
+  .doc-card h4{ margin:0 0 4px; color:var(--azul); }
+  .doc-card .cnt{ font-size:.78rem; color:var(--muted); margin-bottom:10px; }
+  .doc-file{ display:flex; align-items:center; gap:8px; padding:6px 0; border-top:1px solid var(--linea); font-size:.85rem; }
+  .doc-file .tam{ color:var(--muted); font-size:.75rem; }
+  .doc-file .x{ margin-left:auto; color:var(--rojo); cursor:pointer; font-weight:700; }
+  .doc-ayuda{ background:#fff8e1; border-left:5px solid #ffb300; }
+  .doc-ayuda h4{ color:#e65100; }
+
+  .toast{ position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:#1a2638; color:#fff;
+    padding:12px 22px; border-radius:10px; font-size:.9rem; box-shadow:0 8px 24px rgba(0,0,0,.3); z-index:100; opacity:0; transition:opacity .25s; }
+  .toast.show{ opacity:1; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════ LOGIN ═══════════ -->
+<div id="login">
+  <button id="btn-regresar" onclick="regresarQuiosco()"
+    style="position:fixed;top:16px;left:16px;background:rgba(255,255,255,.12);color:#fff;border:none;border-radius:8px;padding:9px 16px;font-weight:700;cursor:pointer;">← Regresar</button>
+  <form class="caja" onsubmit="hacerLogin(event)">
+    <div class="venado">🦌</div>
+    <h1>Panel UAEM</h1>
+    <p class="sub">Acceso para Administrador y Guardianes</p>
+    <label>Usuario</label>
+    <input id="l-user" autocomplete="username" required>
+    <label>Contraseña</label>
+    <input id="l-pass" type="password" autocomplete="current-password" required>
+    <button type="submit">Ingresar</button>
+    <div class="err" id="l-err"></div>
+    <div class="foot">Escuela de Estudios Superiores Atlatlahuacan · Subsede Totolapan</div>
+  </form>
+</div>
+
+<!-- ═══════════ APP ═══════════ -->
+<div id="app" class="oculto">
+  <header>
+    <span class="venado">🦌</span>
+    <div>
+      <h1>Panel Administrativo UAEM</h1>
+      <div class="sub">Escuela de Estudios Superiores Atlatlahuacan · Subsede Totolapan</div>
+    </div>
+    <div class="der">
+      <span class="nombre" id="h-nombre"></span>
+      <span class="badge" id="h-rol"></span>
+      <button class="salir" onclick="salirDelPanel()" title="Vuelve al quiosco sin cerrar tu sesión">Salir del panel</button>
+      <button class="salir" style="background:#c0392b" onclick="cerrarSesion()" title="Cierra tu sesión (dejarás de recibir notificaciones)">Cerrar sesión</button>
+    </div>
+  </header>
+
+  <nav id="nav">
+    <button data-tab="pendientes" class="act" onclick="irTab(this)">Preguntas pendientes<span class="cont-badge oculto" id="badge-pend">0</span></button>
+    <button data-tab="respuestas" onclick="irTab(this)">Respuestas guardadas</button>
+    <button data-tab="documentacion" onclick="irTab(this)">Documentación</button>
+    <button data-tab="usuarios" id="tab-usuarios" onclick="irTab(this)">Usuarios</button>
+  </nav>
+
+  <main>
+    <!-- PENDIENTES -->
+    <section id="s-pendientes">
+      <div class="controles">
+        <select id="f-area" onchange="cargarPendientes()"></select>
+        <input id="f-busca" placeholder="Buscar en preguntas…" oninput="cargarPendientes()">
+      </div>
+      <div id="lista-pendientes"></div>
+    </section>
+
+    <!-- RESPUESTAS -->
+    <section id="s-respuestas" class="oculto">
+      <div class="controles">
+        <input id="r-busca" placeholder="Buscar respuestas guardadas…" oninput="cargarRespuestas()">
+      </div>
+      <div id="lista-respuestas"></div>
+    </section>
+
+    <!-- DOCUMENTACION -->
+    <section id="s-documentacion" class="oculto">
+      <div class="panel-form">
+        <h3>Agregar documentación</h3>
+        <div class="grid">
+          <div><label>Área</label><select id="d-area"></select></div>
+          <div><label>Nombre del archivo</label><input id="d-nombre" placeholder="ej. requisitos.txt"></div>
+          <div style="grid-column:1/-1"><label>Contenido (o carga un archivo .txt/.md)</label>
+            <input type="file" id="d-file" accept=".txt,.md" onchange="cargarArchivo(event)" style="margin-bottom:8px">
+            <textarea id="d-cont" style="min-height:120px" placeholder="Pega aquí el texto que el bot debe conocer…"></textarea>
+          </div>
+        </div>
+        <div class="acciones"><button class="btn btn-p" onclick="subirDoc()">Guardar documento</button></div>
+      </div>
+      <div id="doc-grid" class="doc-grid"></div>
+    </section>
+
+    <!-- USUARIOS -->
+    <section id="s-usuarios" class="oculto">
+      <div class="panel-form">
+        <h3>Crear nuevo usuario</h3>
+        <div class="grid">
+          <div><label>Usuario</label><input id="u-user" placeholder="ej. titulaciones"></div>
+          <div><label>Contraseña</label><input id="u-pass" type="text" placeholder="mínimo 6 caracteres"></div>
+          <div><label>Nombre a mostrar</label><input id="u-nombre" placeholder="Guardián de Titulaciones"></div>
+          <div><label>Rol</label>
+            <select id="u-rol" onchange="toggleAreaUsuario()">
+              <option value="guardian">Guardián de área</option>
+              <option value="admin">Administrador General</option>
+            </select></div>
+          <div id="u-area-wrap"><label>Área (solo Guardián)</label><select id="u-area"></select></div>
+        </div>
+        <div class="acciones"><button class="btn btn-p" onclick="crearUsuario()">Crear usuario</button></div>
+      </div>
+      <h2 class="sec">Usuarios registrados</h2>
+      <div id="lista-usuarios"></div>
+    </section>
+  </main>
+</div>
+
+<!-- Modal cambiar contraseña (Electron bloquea prompt()) -->
+<div id="modal-pass" class="oculto" style="position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:200">
+  <div style="background:#fff;border-radius:14px;padding:24px;width:340px;max-width:90vw;box-shadow:0 20px 60px rgba(0,0,0,.4)">
+    <h3 style="margin:0 0 6px;color:#003366">Cambiar contraseña</h3>
+    <p id="mp-user" style="color:#64748b;font-size:.85rem;margin:0 0 14px"></p>
+    <input id="mp-pass" type="text" placeholder="Nueva contraseña (mínimo 6)"
+      style="width:100%;padding:11px 12px;border:1px solid #cbd5e1;border-radius:8px;outline:none"
+      onkeydown="if(event.key==='Enter')guardarPass()">
+    <div class="acciones" style="margin-top:16px;justify-content:flex-end">
+      <button class="btn btn-g" onclick="cerrarModalPass()">Cancelar</button>
+      <button class="btn btn-p" onclick="guardarPass()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  let TOKEN = localStorage.getItem('uaem_token') || '';
+  let YO = null, AREAS = [];
+
+  const $ = s => document.querySelector(s);
+  const esc = s => (s||'').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const kb = b => (b/1024).toFixed(1)+' KB';
+  const fecha = iso => { try{ return new Date(iso).toLocaleString('es-MX',{dateStyle:'short',timeStyle:'short'}); }catch{ return iso; } };
+  function toast(m){ const t=$('#toast'); t.textContent=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2200); }
+
+  async function api(ruta, opts={}){
+    opts.headers = Object.assign({'Content-Type':'application/json','Authorization':'Bearer '+TOKEN}, opts.headers||{});
+    const r = await fetch(ruta, opts);
+    const data = await r.json().catch(()=>({}));
+    if(r.status===401){ salir(); throw new Error('sesión'); }
+    return data;
+  }
+
+  // ── Regresar al quiosco (usa ?back= que manda el logo del quiosco) ──
+  function regresarQuiosco(){
+    const back = new URLSearchParams(location.search).get('back');
+    if(back){
+      if(window.electronKiosk && window.electronKiosk.navigateTo) window.electronKiosk.navigateTo(back);
+      else window.location.href = back;
+    } else if(history.length > 1){ history.back(); }
+    else { window.location.href = '/'; }
+  }
+
+  // ── LOGIN ──
+  async function hacerLogin(e){
+    e.preventDefault();
+    $('#l-err').textContent='';
+    const r = await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({usuario:$('#l-user').value, password:$('#l-pass').value})}).then(x=>x.json()).catch(()=>({}));
+    if(!r.ok){ $('#l-err').textContent = r.error||'No se pudo iniciar sesión'; return; }
+    TOKEN = r.token; localStorage.setItem('uaem_token', TOKEN);
+    YO = r.usuario; AREAS = r.areas; iniciarApp();
+  }
+  // Cierra SESIÓN de verdad: borra el token del servidor y del equipo.
+  // Después de esto dejarás de recibir notificaciones hasta volver a entrar.
+  async function cerrarSesion(){
+    if(!confirm('¿Cerrar tu sesión? Dejarás de recibir notificaciones hasta que vuelvas a iniciar sesión.')) return;
+    try{ await api('/api/logout',{method:'POST'}); }catch{}
+    localStorage.removeItem('uaem_token');
+    clearInterval(window._poll);
+    // Recarga la página: vuelve al login limpio (evita estados no interactivos en Electron)
+    location.reload();
+  }
+  // Sale del panel SIN cerrar sesión: vuelve al quiosco y la sesión sigue viva.
+  function salirDelPanel(){ regresarQuiosco(); }
+
+  function iniciarApp(){
+    $('#login').classList.add('oculto'); $('#app').classList.remove('oculto');
+    _prevPend = null; // reinicia el contador de avisos en cada entrada
+    try{ if('Notification' in window && Notification.permission==='default') Notification.requestPermission(); }catch{}
+    $('#h-nombre').textContent = YO.nombre;
+    $('#h-rol').textContent = YO.rol==='admin' ? 'Administrador' : ('Guardián de '+labelArea(YO.area));
+    // Solo admin ve Usuarios
+    $('#tab-usuarios').classList.toggle('oculto', YO.rol!=='admin');
+    // Selectores de área
+    const opsTodas = '<option value="">Todas las áreas</option>' + AREAS.map(a=>`<option value="${a.id}">${esc(a.label)}</option>`).join('');
+    const opsAreas = AREAS.map(a=>`<option value="${a.id}">${esc(a.label)}</option>`).join('');
+    if(YO.rol==='admin'){ $('#f-area').innerHTML = opsTodas; $('#f-area').disabled=false; }
+    else { $('#f-area').innerHTML = `<option value="${YO.area}">${esc(labelArea(YO.area))}</option>`; $('#f-area').disabled=true; }
+    $('#d-area').innerHTML = YO.rol==='admin' ? opsAreas : `<option value="${YO.area}">${esc(labelArea(YO.area))}</option>`;
+    $('#u-area').innerHTML = opsAreas;
+    irTabNombre('pendientes');
+    cargarPendientes(); refrescarBadge();
+    clearInterval(window._poll); window._poll = setInterval(()=>{ refrescarBadge(); if(tabActual==='pendientes') cargarPendientes(); }, 8000);
+  }
+  const labelArea = id => (AREAS.find(a=>a.id===id)||{}).label || id || 'General';
+
+  // ── TABS ──
+  let tabActual='pendientes';
+  function irTab(btn){ irTabNombre(btn.dataset.tab); }
+  function irTabNombre(tab){
+    tabActual=tab;
+    document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('act', b.dataset.tab===tab));
+    ['pendientes','respuestas','documentacion','usuarios'].forEach(t=> $('#s-'+t).classList.toggle('oculto', t!==tab));
+    if(tab==='pendientes') cargarPendientes();
+    if(tab==='respuestas') cargarRespuestas();
+    if(tab==='documentacion') cargarDoc();
+    if(tab==='usuarios') cargarUsuarios();
+  }
+
+  // ── PENDIENTES ──
+  let _prevPend = null;
+  async function refrescarBadge(){
+    try{
+      const d = await api('/api/pendientes');
+      const n = (d.pendientes||[]).length;
+      const b = $('#badge-pend'); b.textContent=n; b.classList.toggle('oculto', n===0);
+      // Aviso al encargado cuando LLEGA una pregunta nueva
+      if(_prevPend !== null && n > _prevPend){ avisarNuevaPregunta(n - _prevPend, d.pendientes[0]); }
+      _prevPend = n;
+    }catch{}
+  }
+  function avisarNuevaPregunta(cuantas, ultima){
+    const titulo = cuantas>1 ? (cuantas+' preguntas nuevas por responder') : 'Nueva pregunta por responder';
+    const cuerpo = ultima ? ('['+(ultima.areaLabel||'')+'] '+ultima.pregunta) : '';
+    // 1) Notificación del sistema (si el usuario la permitió)
+    try{
+      if('Notification' in window && Notification.permission==='granted'){ new Notification('🦌 '+titulo, { body: cuerpo }); }
+    }catch{}
+    // 2) Aviso visual dentro del panel + sonido corto
+    toast('🔔 '+titulo);
+    try{
+      const ac = new (window.AudioContext||window.webkitAudioContext)();
+      const o = ac.createOscillator(), g = ac.createGain();
+      o.frequency.value = 880; o.connect(g); g.connect(ac.destination);
+      g.gain.setValueAtTime(0.0001, ac.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.2, ac.currentTime+0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime+0.25);
+      o.start(); o.stop(ac.currentTime+0.26);
+    }catch{}
+  }
+  async function cargarPendientes(){
+    const area = $('#f-area').value, q = $('#f-busca').value;
+    const d = await api(`/api/pendientes?area=${encodeURIComponent(area)}&q=${encodeURIComponent(q)}`);
+    const cont = $('#lista-pendientes'); const items = d.pendientes||[];
+    const b=$('#badge-pend'); b.textContent=items.length; b.classList.toggle('oculto', items.length===0 || !!area || !!q);
+    if(!items.length){ cont.innerHTML = `<div class="vacio"><span class="em">🦌</span>No hay preguntas pendientes en este momento.</div>`; return; }
+    cont.innerHTML = items.map(p=>`
+      <div class="card pend">
+        <div class="meta"><span class="chip">${esc(p.areaLabel||labelArea(p.area))}</span><span>${fecha(p.fecha)}</span></div>
+        <div class="preg">${esc(p.pregunta)}</div>
+        ${p.intentoBot?`<div class="intento"><b>Intento del bot:</b> ${esc(p.intentoBot)}</div>`:''}
+        <textarea id="rp${p.id}" placeholder="Escribe la respuesta oficial (se guardará y el bot la usará después)…"></textarea>
+        <div class="acciones">
+          <button class="btn btn-p" onclick="responder(${p.id})">Responder y guardar</button>
+          <button class="btn btn-r" onclick="descartar(${p.id})">Descartar</button>
+        </div>
+      </div>`).join('');
+  }
+  async function responder(id){
+    const t=$('#rp'+id); const v=(t.value||'').trim();
+    if(!v){ toast('Escribe una respuesta primero'); return; }
+    const r = await api('/api/pendientes/responder',{method:'POST',body:JSON.stringify({id,respuesta:v})});
+    if(r.ok){ toast('Respuesta guardada. El bot ya la conoce.'); cargarPendientes(); refrescarBadge(); }
+    else toast(r.error||'Error');
+  }
+  async function descartar(id){
+    if(!confirm('¿Descartar esta pregunta sin responder?')) return;
+    await api('/api/pendientes?id='+id,{method:'DELETE'}); cargarPendientes(); refrescarBadge();
+  }
+
+  // ── RESPUESTAS ──
+  async function cargarRespuestas(){
+    const q=$('#r-busca').value;
+    const d = await api('/api/respuestas?q='+encodeURIComponent(q));
+    const cont=$('#lista-respuestas'); const items=d.respuestas||[];
+    if(!items.length){ cont.innerHTML = `<div class="vacio"><span class="em">🗂️</span>Aún no hay respuestas guardadas. Las respuestas se irán aprendiendo conforme atiendas preguntas.</div>`; return; }
+    cont.innerHTML = items.map(r=>`
+      <div class="card ok">
+        <div class="meta"><span class="chip">${esc(r.areaLabel||labelArea(r.area))}</span><span>${fecha(r.fecha)}</span><span>por ${esc(r.autor||'—')}</span></div>
+        <div class="preg">${esc(r.pregunta)}</div>
+        <div class="resp-txt">${esc(r.respuesta)}</div>
+        <div class="acciones"><button class="btn btn-r" onclick="borrarResp(${r.id})">Eliminar</button></div>
+      </div>`).join('');
+  }
+  async function borrarResp(id){ if(!confirm('¿Eliminar esta respuesta guardada?'))return; await api('/api/respuestas?id='+id,{method:'DELETE'}); cargarRespuestas(); }
+
+  // ── DOCUMENTACION ──
+  function cargarArchivo(e){
+    const f=e.target.files[0]; if(!f)return;
+    if(!$('#d-nombre').value) $('#d-nombre').value=f.name;
+    const rd=new FileReader(); rd.onload=()=>$('#d-cont').value=rd.result; rd.readAsText(f);
+  }
+  async function subirDoc(){
+    const area=$('#d-area').value, nombre=$('#d-nombre').value.trim(), contenido=$('#d-cont').value;
+    if(!nombre){ toast('Ponle un nombre al archivo'); return; }
+    if(!contenido.trim()){ toast('El contenido está vacío'); return; }
+    const r=await api('/api/documentacion/subir',{method:'POST',body:JSON.stringify({area,nombre,contenido})});
+    if(r.ok){ toast('Documento guardado: '+r.nombre); $('#d-nombre').value=''; $('#d-cont').value=''; $('#d-file').value=''; cargarDoc(); }
+    else toast(r.error||'Error');
+  }
+  async function cargarDoc(){
+    const d=await api('/api/documentacion');
+    const cont=$('#doc-grid');
+    const cards=(d.documentacion||[]).map(a=>`
+      <div class="doc-card">
+        <h4>${esc(a.label)}</h4>
+        <div class="cnt">${a.archivos.length} archivo(s) de documentación</div>
+        ${a.archivos.length? a.archivos.map(f=>`
+          <div class="doc-file">📄 ${esc(f.nombre)} <span class="tam">(${kb(f.tamano)})</span>
+            <span class="x" title="Eliminar" onclick="borrarDoc('${a.area}','${esc(f.nombre)}')">✕</span></div>`).join('')
+          : '<div class="doc-file" style="color:#94a3b8">Sin archivos todavía</div>'}
+      </div>`).join('');
+    cont.innerHTML = cards + `
+      <div class="doc-card doc-ayuda">
+        <h4>📁 ¿Cómo agregar más documentación?</h4>
+        <div class="cnt">Usa el formulario de arriba, o coloca archivos .txt / .md dentro de la carpeta
+        <b>server/documentacion/&lt;área&gt;/</b>. El chatbot leerá el contenido automáticamente para responder.</div>
+      </div>`;
+  }
+  async function borrarDoc(area,nombre){ if(!confirm('¿Eliminar '+nombre+'?'))return; await api('/api/documentacion?area='+area+'&nombre='+encodeURIComponent(nombre),{method:'DELETE'}); cargarDoc(); }
+
+  // ── USUARIOS ──
+  function toggleAreaUsuario(){ $('#u-area-wrap').style.visibility = $('#u-rol').value==='guardian'?'visible':'hidden'; }
+  async function crearUsuario(){
+    const body={ usuario:$('#u-user').value.trim(), password:$('#u-pass').value, nombre:$('#u-nombre').value.trim(),
+      rol:$('#u-rol').value, area:$('#u-area').value };
+    const r=await api('/api/usuarios',{method:'POST',body:JSON.stringify(body)});
+    if(r.ok){ toast('Usuario creado'); ['u-user','u-pass','u-nombre'].forEach(i=>$('#'+i).value=''); cargarUsuarios(); }
+    else toast(r.error||'Error');
+  }
+  async function cargarUsuarios(){
+    const d=await api('/api/usuarios');
+    $('#lista-usuarios').innerHTML=(d.usuarios||[]).map(u=>{
+      const yo = u.usuario===YO.usuario;
+      const rol = u.rol==='admin'?'Administrador General':('Guardián de '+labelArea(u.area));
+      return `<div class="card ${u.rol==='admin'?'pend':''}">
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <b style="font-size:1.05rem">${esc(u.nombre)}</b>${yo?'<span style="color:var(--verde);font-weight:700">(tú)</span>':''}
+          <span style="margin-left:auto;display:flex;gap:8px">
+            <button class="btn btn-g" onclick="cambiarPass('${esc(u.usuario)}')">Cambiar contraseña</button>
+            ${yo?'':`<button class="btn btn-r" onclick="borrarUsuario('${esc(u.usuario)}')">Eliminar</button>`}
+          </span>
+        </div>
+        <div class="meta" style="margin-top:8px"><span class="chip">${esc(rol)}</span><span>Usuario: <b>${esc(u.usuario)}</b></span><span>Creado: ${fecha(u.creado)}</span></div>
+      </div>`;
+    }).join('');
+  }
+  let _passUser=null;
+  function cambiarPass(usuario){
+    _passUser=usuario; $('#mp-user').textContent='Usuario: '+usuario;
+    $('#mp-pass').value=''; $('#modal-pass').classList.remove('oculto'); setTimeout(()=>$('#mp-pass').focus(),50);
+  }
+  function cerrarModalPass(){ $('#modal-pass').classList.add('oculto'); }
+  async function guardarPass(){
+    const p=$('#mp-pass').value;
+    if(!p || p.length<6){ toast('La contraseña debe tener al menos 6 caracteres'); return; }
+    const r=await api('/api/usuarios/password',{method:'POST',body:JSON.stringify({usuario:_passUser,password:p})});
+    if(r.ok){ toast('Contraseña actualizada'); cerrarModalPass(); } else toast(r.error||'Error');
+  }
+  async function borrarUsuario(usuario){ if(!confirm('¿Eliminar al usuario '+usuario+'?'))return; const r=await api('/api/usuarios?usuario='+encodeURIComponent(usuario)); cargarUsuarios(); toast('Usuario eliminado'); }
+
+  // ── Restaurar sesión ──
+  (async function(){
+    if(!TOKEN){ return; }
+    try{ const d=await api('/api/yo'); if(d.ok){ YO=d.usuario; AREAS=d.areas; iniciarApp(); } }
+    catch{ /* token vencido: queda el login */ }
+  })();
+</script>
+</body>
+</html>

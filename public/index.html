@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <script src="auth-visitante.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiosco Interactivo UAEM - EESA</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@48,400,0,0" />
+    <script src="temas-festivos.js"></script>
+    <script src="animaciones-festivas.js"></script>
+    
+    <style>
+        :root {
+            --bg-bottom: #f4f6f9;
+            --uaem-blue: #00335b;
+            --text-main: #2d3748;
+            --text-muted: #718096;
+            --card-bg: #ffffff;
+            
+            --color-blue: #0056b3;
+            --color-red: #9b2c2c;
+            --color-green: #238636;
+            --color-purple: #6b46c1;
+            --color-gray: #4a5568;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-bottom);
+            background-image: radial-gradient(circle, rgba(0, 51, 91, 0.045) 1px, transparent 1px);
+            background-size: 28px 28px;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            user-select: none;
+            overflow-x: hidden;
+        }
+
+        /* --- KEYFRAMES PARA ANIMACIONES --- */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(50px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulseGlow {
+            0% { box-shadow: 0 0 0 0 rgba(0, 51, 91, 0.3); }
+            70% { box-shadow: 0 0 0 15px rgba(0, 51, 91, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 51, 91, 0); }
+        }
+
+        @keyframes gentlePulse {
+            0% { transform: scale(1); opacity: 0.95; }
+            50% { transform: scale(1.02); opacity: 1; }
+            100% { transform: scale(1); opacity: 0.95; }
+        }
+
+        /* --- ENCABEZADO Y LOGOS (Barra superior blanca) --- */
+        .top-bar {
+            display: flex;
+            justify-content: space-between; 
+            align-items: center;
+            background-color: var(--card-bg);
+            padding: 0 40px;
+            height: 120px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+            position: relative;
+            z-index: 10;
+        }
+
+        .logo-img {
+            max-height: 80px;
+            width: auto;
+            object-fit: contain;
+            animation: gentlePulse 4s infinite ease-in-out; 
+            transition: all 0.3s ease;
+        }
+
+        .logo-img:hover {
+            animation: gentlePulse 1.5s infinite ease-in-out;
+            transform: scale(1.05);
+        }
+
+        .header-title h1 {
+            font-size: 1.6rem;
+            color: var(--uaem-blue);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-weight: 700;
+            text-align: center;
+        }
+
+        /* --- SECCIÓN HERO CON VIDEO DE FONDO Y BOTÓN INICIO --- */
+        .hero {
+            height: 30vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 0 60px;
+            position: relative; /* Clave para el posicionamiento absoluto del botón */
+            overflow: hidden; 
+        }
+
+        .hero video {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            min-width: 100%;
+            min-height: 100%;
+            width: auto;
+            height: auto;
+            transform: translate(-50%, -50%);
+            z-index: -2; 
+            object-fit: cover;
+        }
+
+        .hero-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, rgba(0, 51, 91, 0.88) 0%, rgba(0, 18, 45, 0.97) 100%);
+            z-index: -1;
+        }
+
+        .hero-text {
+            border-left: 5px solid rgba(255,255,255,0.8);
+            padding-left: 25px;
+            color: white;
+            z-index: 2;
+        }
+
+        .hero-text h2 {
+            font-size: 3.8rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            letter-spacing: 1px;
+            text-shadow: 0 3px 12px rgba(0,0,0,0.25);
+        }
+
+        .hero-text p {
+            font-size: 1.3rem;
+            opacity: 0.9;
+        }
+
+        /* --- BOTÓN DE REGRESAR A PORTADA (NUEVO DISEÑO HERO) --- */
+        .btn-regresar.btn-hero {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: linear-gradient(135deg, #ffffff 0%, #f0f8ff 100%);
+            color: var(--uaem-blue);
+            text-decoration: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            position: absolute;
+            right: 60px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 10;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .btn-regresar.btn-hero:hover {
+            background-color: #f0f4f8; /* Un gris muy ligero para hover */
+            color: var(--uaem-blue);
+            transform: translateY(-55%) scale(1.05); /* Efecto de levitación */
+            box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+        }
+
+        .btn-regresar.btn-hero:active {
+            transform: translateY(-50%) scale(0.95);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        /* --- CONTENEDOR DE TARJETAS --- */
+        .kiosk-menu {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr); 
+            gap: 30px;
+            padding: 0 50px;
+            max-width: 100%;
+            width: 100%;
+            margin: -40px auto 40px auto; 
+            position: relative;
+            z-index: 5;
+            flex-grow: 1;
+        }
+
+        /* --- TARJETAS BASE Y ANIMACIONES --- */
+        .menu-card {
+            background-color: var(--card-bg);
+            border-radius: 24px;
+            padding: 40px 30px;
+            text-decoration: none;
+            color: var(--text-main);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05); 
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+            height: 100%;
+            min-height: 350px;
+            transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+            opacity: 0;
+            animation: fadeInUp 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+        }
+
+        .menu-card:nth-child(1) { animation-delay: 0.1s; }
+        .menu-card:nth-child(2) { animation-delay: 0.2s; }
+        .menu-card:nth-child(3) { animation-delay: 0.3s; }
+        .menu-card:nth-child(4) { animation-delay: 0.4s; }
+
+        .menu-card:hover {
+            transform: translateY(-10px) scale(1.03); 
+            box-shadow: 0 25px 50px rgba(0,0,0,0.15); 
+        }
+
+        .menu-card:hover .btn-circle {
+            background-color: var(--uaem-blue);
+            color: white;
+            transform: translateX(8px); 
+        }
+
+        .menu-card:hover .icon-small {
+            transform: rotate(-8deg) scale(1.15);
+        }
+
+        .menu-card:active {
+            transform: scale(0.95); 
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1); 
+            transition: all 0.1s ease; 
+        }
+
+        .icon-small {
+            width: 75px;
+            height: 75px;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 25px;
+            color: white;
+            transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        .icon-small span { font-size: 2.8rem; }
+
+        /* Fondos de tarjeta con tinte suave */
+        .card-blue   { background: linear-gradient(160deg, #ffffff 0%, #eff6ff 100%); }
+        .card-red    { background: linear-gradient(160deg, #ffffff 0%, #fff5f5 100%); }
+        .card-green  { background: linear-gradient(160deg, #ffffff 0%, #f0fff4 100%); }
+        .card-purple { background: linear-gradient(160deg, #ffffff 0%, #faf5ff 100%); }
+        .card-gray   { background: linear-gradient(160deg, #ffffff 0%, #f7fafc 100%); }
+
+        /* Tira superior gradiente en lugar de borde sólido */
+        .card-blue::before   { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 5px; border-radius: 24px 24px 0 0; background: linear-gradient(90deg, #0056b3, #60a5fa); }
+        .card-red::before    { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 5px; border-radius: 24px 24px 0 0; background: linear-gradient(90deg, #9b2c2c, #fc8181); }
+        .card-green::before  { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 5px; border-radius: 24px 24px 0 0; background: linear-gradient(90deg, #238636, #68d391); }
+        .card-purple::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 5px; border-radius: 24px 24px 0 0; background: linear-gradient(90deg, #6b46c1, #b794f4); }
+        .card-gray::before   { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 5px; border-radius: 24px 24px 0 0; background: linear-gradient(90deg, #4a5568, #a0aec0); }
+
+        /* Iconos con gradiente y sombra coloreada */
+        .card-blue .icon-small   { background: linear-gradient(135deg, #0056b3 0%, #3b9de8 100%); box-shadow: 0 8px 20px rgba(0, 86, 179, 0.35); }
+        .card-red .icon-small    { background: linear-gradient(135deg, #9b2c2c 0%, #e53e3e 100%); box-shadow: 0 8px 20px rgba(155, 44, 44, 0.35); }
+        .card-green .icon-small  { background: linear-gradient(135deg, #238636 0%, #48bb78 100%); box-shadow: 0 8px 20px rgba(35, 134, 54, 0.35); }
+        .card-purple .icon-small { background: linear-gradient(135deg, #6b46c1 0%, #9f7aea 100%); box-shadow: 0 8px 20px rgba(107, 70, 193, 0.35); }
+        .card-gray .icon-small   { background: linear-gradient(135deg, #4a5568 0%, #718096 100%); box-shadow: 0 8px 20px rgba(74, 85, 104, 0.35); }
+
+        .menu-card h3 {
+            font-size: 1.8rem;
+            color: var(--uaem-blue);
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+
+        .menu-card p {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            line-height: 1.6;
+            flex-grow: 1;
+        }
+
+        .card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 20px;
+            border-top: 2px solid #edf2f7;
+            margin-top: 20px;
+        }
+
+        .btn-text {
+            font-weight: 700;
+            font-size: 1rem;
+            color: var(--uaem-blue);
+            letter-spacing: 1px;
+        }
+
+        .btn-circle {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background-color: #f0f4f8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--uaem-blue);
+            transition: all 0.3s ease; 
+            animation: pulseGlow 2s infinite; 
+        }
+
+        .bottom-footer {
+            margin-top: auto;
+            background: linear-gradient(135deg, #0b192c 0%, #091520 100%);
+            color: #a0aec0;
+            text-align: center;
+            padding: 25px;
+            font-size: 1rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* ========== UPGRADES VISUALES NIVEL 2 ========== */
+
+        /* Borde inferior degradado en top bar */
+        .top-bar::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0; right: 0; height: 2px;
+            background: linear-gradient(90deg, transparent, rgba(0,86,179,0.35), rgba(0,51,91,0.65), rgba(0,86,179,0.35), transparent);
+        }
+
+        /* Barrido de luz en el hero */
+        @keyframes heroSweep {
+            0%,45%,100% { transform: translateX(-200%); }
+            42% { transform: translateX(350%); }
+        }
+        .hero::after {
+            content: '';
+            position: absolute; top: 0; left: 0;
+            width: 60%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.04), transparent);
+            animation: heroSweep 10s ease-in-out infinite 1.5s;
+            pointer-events: none; z-index: 0;
+        }
+
+        /* Shimmer en cards al hover */
+        .menu-card::after {
+            content: '';
+            position: absolute; top: 0; left: 0;
+            width: 55%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+            transform: translateX(-200%);
+            pointer-events: none; z-index: 1;
+        }
+        .menu-card:hover::after {
+            transform: translateX(290%);
+            transition: transform 0.75s ease;
+        }
+
+        /* Hover más dramático */
+        .menu-card:hover {
+            transform: translateY(-14px) scale(1.03);
+            box-shadow: 0 35px 70px rgba(0,0,0,0.2);
+        }
+        .menu-card:hover .btn-circle {
+            background-color: var(--uaem-blue);
+            color: white;
+            transform: translateX(8px) scale(1.15);
+            box-shadow: 0 0 18px rgba(0,51,91,0.35);
+        }
+        .menu-card:hover .icon-small {
+            transform: rotate(-10deg) scale(1.2);
+        }
+    </style>
+    <link rel="stylesheet" href="responsive.css">
+</head>
+<body>
+
+    <header class="top-bar">
+        <img src="img/logo-uaem.png" alt="Logo UAEM" class="logo-img">
+        <div class="header-title">
+            <h1>Escuela de Estudios Superiores Atlatlahucan Subsede Totolapan</h1>
+        </div>
+        <img src="img/logo-eesa.png" alt="Logo EESA" class="logo-img" id="adminLoginLogo" style="cursor:pointer;" title="Acceso administrativo">
+    </header>
+
+    <section class="hero">
+        <video autoplay loop playsinline>
+            <source src="img/fondo-universidad.mp4" type="video/mp4">
+            Tu navegador no soporta videos.
+        </video>
+        <div class="hero-overlay"></div>
+        
+        <div class="hero-text">
+            <h2>Conoce tu camino.</h2>
+            <p>Selecciona un programa educativo para explorar la oferta.</p>
+        </div>
+
+        <a href="portada.html" class="btn-regresar btn-hero">
+            <span class="material-symbols-outlined">home</span>
+            INICIO
+        </a>
+    </section>
+
+    <main class="kiosk-menu">
+        
+        <a href="programas.html" class="menu-card card-blue">
+            <div class="icon-small"><span class="material-symbols-outlined">auto_stories</span></div>
+            <h3>Programas Educativos</h3>
+            <p>Explora las licenciaturas en Informática, Derecho, Contador publico y Administración con alto desempeño académico.</p>
+            <div class="card-footer">
+                <span class="btn-text">EXPLORAR</span>
+                <div class="btn-circle"><span class="material-symbols-outlined">chevron_right</span></div>
+            </div>
+        </a>
+
+        <a href="becas.html" class="menu-card card-purple">
+            <div class="icon-small"><span class="material-symbols-outlined">card_membership</span></div>
+            <h3>Becas, Prácticas Profecionales, Servicio Social y Seguro Facultativo </h3>
+            <p>Información sobre apoyos económicos, prácticas profesionales y liberación de servicio social.</p>
+            <div class="card-footer">
+                <span class="btn-text">VER REQUISITOS</span>
+                <div class="btn-circle"><span class="material-symbols-outlined">chevron_right</span></div>
+            </div>
+        </a>
+
+        <a href="servicios.html" class="menu-card card-green">
+            <div class="icon-small"><span class="material-symbols-outlined">cases</span></div>
+            <h3>Servicios Escolares</h3>
+            <p>Trámites de inscripción, constancias, credencialización y procesos administrativos.</p>
+            <div class="card-footer">
+                <span class="btn-text">EXPLORAR</span>
+                <div class="btn-circle"><span class="material-symbols-outlined">chevron_right</span></div>
+            </div>
+        </a>
+
+        <a href="titulaciones.html" class="menu-card card-gray">
+            <div class="icon-small"><span class="material-symbols-outlined">receipt_long</span></div>
+            <h3>Titulaciones</h3>
+            <p>Consulta las modalidades de titulación, requisitos y fechas de exámenes profesionales.</p>
+            <div class="card-footer">
+                <span class="btn-text">CONSULTAR</span>
+                <div class="btn-circle"><span class="material-symbols-outlined">chevron_right</span></div>
+            </div>
+        </a>
+
+    </main>
+
+    <footer class="bottom-footer">
+        <span class="material-symbols-outlined" style="font-size: 1.2rem;">location_on</span>
+        ESCUELA DE ESTUDIOS SUPERIORES DE ATLATLAHUCAN SUBSEDE TOTOLAPAN
+    </footer>
+
+    <script>
+        let tiempoInactividad;
+
+        function regresarPortada() {
+            window.location.href = 'portada.html';
+        }
+
+        function reiniciarTemporizador() {
+            clearTimeout(tiempoInactividad);
+            tiempoInactividad = setTimeout(regresarPortada, 600000); // 10 minutos
+        }
+
+        window.onload = reiniciarTemporizador;
+        document.onmousemove = reiniciarTemporizador;
+        document.onkeypress = reiniciarTemporizador;
+        document.ontouchstart = reiniciarTemporizador; 
+        document.onclick = reiniciarTemporizador;
+    </script>
+
+    <!-- Chatbot UAEM -->
+    <script src="config.js"></script>
+    <script src="chatbot.js"></script>
+
+    <!-- Acceso oculto al panel de administración (logo EESA del lado derecho) -->
+    <script>
+      (function () {
+        const logo = document.getElementById('adminLoginLogo');
+        if (!logo) return;
+        logo.addEventListener('click', function (e) {
+          e.preventDefault();
+          const base = (window.UAEM_CONFIG && window.UAEM_CONFIG.SERVER_URL) || window.location.origin;
+          // Pasamos la URL actual como ?back= para que el panel sepa a dónde regresar
+          const back = encodeURIComponent(window.location.href);
+          const destino = base + '/admin?back=' + back;
+          // En el quiosco (Electron) usamos el camino confiable para saltar de
+          // file:// a http:// (evita la pantalla en blanco). En navegador normal,
+          // navegación directa.
+          if (window.electronKiosk && window.electronKiosk.navigateTo) {
+            window.electronKiosk.navigateTo(destino);
+          } else {
+            window.location.href = destino;
+          }
+        });
+      })();
+    </script>
+</body>
+</html>

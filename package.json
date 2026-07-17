@@ -1,0 +1,14 @@
+{
+  "name": "quiosco-uaem-web",
+  "version": "1.0.0",
+  "description": "Quiosco UAEM Totolapan — versión web (página + bot + panel de maestros)",
+  "main": "server.js",
+  "type": "commonjs",
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "start": "node server.js",
+    "conocimiento": "node construir-conocimiento.js"
+  },
+  "author": "",
+  "license": "ISC"
+}

@@ -1,0 +1,27 @@
+NOTIFICADOR DE ESCRITORIO — Quiosco UAEM
+==========================================
+
+¿Qué hace?
+  Avisa al ENCARGADO de un área con una notificación de Windows cuando llega
+  una pregunta nueva que el bot no supo responder — AUNQUE el panel esté cerrado.
+
+Cómo configurarlo (en la PC de cada encargado):
+
+  1) Copia esta carpeta "notificador" a la PC del encargado
+     (o úsala aquí mismo si el encargado trabaja en esta PC).
+
+  2) Abre "notificador-config.json" y pon:
+       - serverUrl:  la IP del servidor  (esta PC principal es http://192.168.1.79:3001)
+       - usuario:    el usuario del encargado (el que creó el admin en el panel)
+       - password:   su contraseña
+
+  3) Doble clic en "Instalar Notificador (autoarranque).bat".
+       Queda encendido y se iniciará solo cada vez que prenda la PC.
+
+     (Si solo quieres probarlo sin auto-arranque, usa "Iniciar Notificador.bat".)
+
+Notas:
+  - Requiere que Node esté instalado (ya lo está en la PC principal).
+  - La notificación llega estés donde estés, sin tener el panel abierto.
+  - Para desactivar el auto-arranque, borra:
+      %APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup\QuioscoUAEM-Notificador.vbs

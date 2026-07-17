@@ -1,0 +1,28 @@
+# Configuración de despliegue para Render (https://render.com)
+# Súbelo con el resto del proyecto; Render lo detecta como "Blueprint".
+services:
+  - type: web
+    name: quiosco-uaem
+    runtime: node
+    plan: starter            # 'starter' (~$7/mes) permite disco persistente.
+                             # Puedes usar 'free' para PROBAR, pero los datos
+                             # (usuarios, visitantes, respuestas) se reinician.
+    region: oregon
+    buildCommand: node construir-conocimiento.js
+    startCommand: node server.js
+    healthCheckPath: /health
+    envVars:
+      - key: LLM_API_KEY       # tu API key de Groq (console.groq.com)
+        sync: false
+      - key: LLM_MODEL
+        value: llama-3.1-8b-instant
+      - key: ADMIN_PASSWORD    # contraseña del panel /admin (ponla segura)
+        sync: false
+      - key: EMAIL_API_KEY     # (opcional) API key de Resend para correos reales
+        sync: false
+      - key: EMAIL_FROM        # (opcional) remitente, ej. UAEM <no-reply@tudominio>
+        sync: false
+    disk:                      # guarda los datos entre reinicios/despliegues
+      name: datos
+      mountPath: /opt/render/project/src/datos
+      sizeGB: 1

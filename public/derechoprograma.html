@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <script src="auth-visitante.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Licenciatura en Derecho - EESA</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@48,400,0,0" />
+
+    <style>
+        :root {
+            --bg-bottom: #f4f6f9;
+            --uaem-green: #1b5e20; /* Verde institucional */
+            --color-green: #2e7d32; /* Color de Administración */
+            --text-main: #000000; /* Letras negras */
+            --card-bg: #ffffff;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Montserrat', sans-serif; }
+
+        body { background-color: var(--bg-bottom); display: flex; flex-direction: column; min-height: 100vh; user-select: none; overflow-x: hidden; }
+
+        /* BARRA SUPERIOR AZUL OSCURO PARA QUE EL TEXTO BLANCO SE VEA */
+        .top-bar { display: flex; justify-content: space-between; align-items: center; background-color: var(--uaem-green); padding: 0 40px; height: 120px; box-shadow: 0 2px 15px rgba(0,0,0,0.1); position: relative; z-index: 10; }
+        
+        /* FONDOS BLANCOS PARA LOS LOGOS */
+        .logo-img { max-height: 80px; width: auto; object-fit: contain; background-color: white; padding: 5px; border-radius: 10px; }
+        
+        /* TÍTULO EN BLANCO */
+        .header-title h1 { font-size: 1.6rem; color: white; text-transform: uppercase; font-weight: 700; text-align: center; }
+
+        .hero { height: 30vh; display: flex; flex-direction: column; justify-content: center; padding: 0 60px; position: relative; overflow: hidden; }
+        .hero video { position: absolute; top: 50%; left: 50%; min-width: 100%; min-height: 100%; width: auto; height: auto; transform: translate(-50%, -50%); z-index: -2; object-fit: cover; }
+        
+        /* Capa oscura EN VERDE CON OPACIDAD */
+        .hero-overlay { 
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+            background: linear-gradient(rgba(46, 125, 50, 0.85), rgba(46, 125, 50, 0.95));
+            z-index: -1; 
+        }
+        
+        .hero-text { border-left: 5px solid white; padding-left: 25px; color: white; z-index: 2; }
+        .hero-text h2 { font-size: 3rem; font-weight: 700; margin-bottom: 5px; }
+        .hero-text p { font-size: 1.2rem; opacity: 0.9; }
+
+        .btn-regresar.btn-hero {
+            display: flex; align-items: center; gap: 10px; background-color: white; color: var(--uaem-green); text-decoration: none;
+            padding: 15px 30px; border-radius: 50px; font-weight: 700; font-size: 1.1rem; position: absolute; right: 60px; top: 50%; transform: translateY(-50%); z-index: 10;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3); transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+        .btn-regresar.btn-hero:hover { transform: translateY(-55%) scale(1.05); box-shadow: 0 15px 35px rgba(0,0,0,0.4); }
+
+        /* CORRECCIÓN: max-width cambiado a 1200px (antes 100px) */
+        .carrera-content { display: flex; gap: 40px; padding: 50px; width: 100%; max-width: 1200px; margin: 0 auto; flex-grow: 1; }
+        .info-menu-v { width: 300px; display: flex; flex-direction: column; gap: 15px; flex-shrink: 0; }
+        
+        .info-item-v {
+            background-color: var(--card-bg); border-radius: 15px; padding: 20px 25px; color: var(--text-main); display: flex; align-items: center; gap: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05); transition: all 0.3s ease; cursor: pointer;
+            border: 2px solid transparent; border-left: 5px solid transparent;
+        }
+
+        .info-item-v:hover:not(.active) { background-color: #f0fff4; border-left-color: var(--color-green); }
+
+        /* ESTADO ACTIVO: LETRAS BLANCAS */
+        .info-item-v.active { background-color: var(--color-green); box-shadow: 0 10px 25px rgba(46, 125, 50, 0.35); border-left-color: rgba(255,255,255,0.6); }
+        .info-item-v.active h3, .info-item-v.active p { color: #ffffff !important; }
+
+        .icon-box-v { width: 50px; height: 50px; border-radius: 10px; display: flex; align-items: center; justify-content: center; background-color: #f0f4f8; color: var(--color-green); }
+        .info-item-v.active .icon-box-v { background-color: rgba(255,255,255,0.25); color: white; }
+        .icon-box-v span { font-size: 2rem; }
+
+        .info-item-v h3 { font-size: 1.1rem; color: #1a202c; font-weight: 700; margin-bottom: 2px; }
+        .info-item-v p { font-size: 0.85rem; color: #4a5568; line-height: 1.2; }
+
+        .info-panels-v { flex-grow: 1; position: relative; }
+        .info-panel { background-color: var(--card-bg); border-radius: 20px; padding: 45px; box-shadow: 0 15px 40px rgba(0,0,0,0.1); display: none; animation: fadeInV 0.4s ease-out; }
+        .info-panel.active { display: block; }
+        .panel-title { font-size: 2.2rem; color: var(--uaem-green); font-weight: 700; margin-bottom: 30px; display: inline-block; padding-bottom: 12px; position: relative; }
+        .panel-title::after { content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 3px; background: linear-gradient(90deg, var(--color-green), transparent); border-radius: 2px; }
+        .panel-body { font-size: 1.1rem; color: var(--text-main); line-height: 1.7; }
+
+        .scroll-box { max-height: 560px; overflow-y: auto; background: #f8fafc; border-radius: 12px; padding: 18px; border: 1px solid #e2e8f0; scrollbar-width: thin; scrollbar-color: var(--color-green) #e2e8f0; }
+        .scroll-box::-webkit-scrollbar { width: 6px; }
+        .scroll-box::-webkit-scrollbar-track { background: #e2e8f0; border-radius: 3px; }
+        .scroll-box::-webkit-scrollbar-thumb { background: var(--color-green); border-radius: 3px; }
+
+        .kiosk-table { width: 100%; border-collapse: collapse; background: white; text-align: center; }
+        .kiosk-table th { background-color: var(--uaem-green); color: white; padding: 15px; font-weight: 600; }
+        .kiosk-table td { padding: 12px; border-bottom: 1px solid #e2e8f0; }
+
+        /* --- ESTILO EXACTO PARA LA TABLA DE TEMPORALIDAD --- */
+        .tabla-temporalidad { 
+            width: 100%; 
+            border-collapse: collapse; 
+            text-align: center; 
+            background: white;
+            border: 2px solid #144617; /* Borde azul exterior */
+        }
+        .tabla-temporalidad th, .tabla-temporalidad td { 
+            border: 1px solid #144617; /* Líneas divisorias azules */
+            padding: 12px; 
+        }
+        /* Fila azul principal */
+        .tabla-temporalidad .head-azul th { 
+            background-color: #144617; 
+            color: white; 
+            font-size: 1.1rem; 
+            font-weight: 700; 
+        }
+        /* Fila blanca secundaria */
+        .tabla-temporalidad .head-blanco th { 
+            background-color: white; 
+            color: #333; 
+            font-weight: 600; 
+            font-size: 1rem; 
+        }
+        .tabla-temporalidad td { 
+            font-size: 1.1rem; 
+            color: black; 
+        }
+
+        /* CLASE PARA EVITAR QUE LA TABLA ROMPA EL DISEÑO */
+        .tabla-responsiva { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+        /* --- MAPA CURRICULAR BLOQUES --- */
+        .mapa-grid-bloques { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 25px; }
+        .materia-bloque-card { background-color: white; border-radius: 15px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; }
+        .materia-bloque-header { background-color: var(--color-green); color: white; padding: 15px 20px; font-weight: 700; font-size: 1.2rem; display: flex; align-items: center; gap: 10px; }
+        .materia-bloque-body { padding: 20px; }
+        .materia-bloque-body ul { list-style: none; padding-left: 0; }
+        .materia-bloque-body li { padding: 10px 0; border-bottom: 1px solid #e2e8f0; color: var(--uaem-green); font-weight: 600; font-size: 1.05rem; display: flex; align-items: center; gap: 10px; }
+        .materia-bloque-body li:last-child { border-bottom: none; }
+        .materia-item-icon { color: var(--color-green); opacity: 0.7; font-size: 1.3rem; }
+
+        /* Contenedor PDF */
+        .pdf-embed-container { width: 100%; height: 600px; border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden; }
+
+        @keyframes fadeInV { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+
+        /* --- FOOTER INFERIOR EN VERDE Y LETRAS BLANCAS --- */
+        .bottom-footer {
+            margin-top: auto; background-color: var(--color-green); color: #ffffff;
+            text-align: center; padding: 25px; font-size: 1rem; display: flex;
+            justify-content: center; align-items: center; gap: 10px; font-weight: 600;
+        }
+        .bottom-footer span { color: #ffffff; }
+
+        /* --- MEDIA QUERY PARA MONITOR VERTICAL (PORTRAIT) --- */
+        @media screen and (orientation: portrait){
+            .carrera-content {
+                flex-direction: column;
+                padding: 30px;
+                gap: 20px;
+            }
+
+            .info-menu-v {
+                width: 100%;
+                flex-direction: row;
+                overflow-x: auto;
+                padding-bottom: 15px;
+            }
+
+            .info-item-v {
+                min-width: 260px;
+                flex-shrink: 0;
+            }
+
+            .info-panels-v {
+                width: 100%;
+            }
+
+            .btn-regresar.btn-hero {
+                position: absolute;
+                transform: none;
+                align-self: flex-start;
+                margin-top: -50px;
+            }
+            
+            .hero {
+                padding: 40px 30px;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="responsive.css">
+</head>
+<body>
+
+    <header class="top-bar">
+        <img src="img/logo-uaem.png" alt="Logo UAEM" class="logo-img">
+        <div class="header-title"><h1>ESCUELA DE ESTUDIOS SUPERIORES DE ATLATLAHUCAN SUBSEDE TOTOLAPAN</h1></div>
+        <img src="img/logo-eesa.png" alt="Logo EESA" class="logo-img">
+    </header>
+
+    <section class="hero">
+        <video autoplay loop playsinline><source src="img/fondo-universidad.mp4" type="video/mp4"></video>
+        <div class="hero-overlay"></div>
+        <div class="hero-text"><h2>Lic. en Derecho</h2><p>Información detallada del programa educativo.</p></div>
+        <a href="programas.html" class="btn-regresar btn-hero"><span class="material-symbols-outlined">arrow_back</span>REGRESAR</a>
+    </section>
+
+    <main class="carrera-content">
+        
+        <nav class="info-menu-v">
+            <div class="info-item-v active" onclick="showPanel('info-general', this)">
+                <div class="icon-box-v"><span class="material-symbols-outlined">auto_stories</span></div>
+                <div><h3>Información General</h3><p>Estructura general.</p></div>
+            </div>
+
+            <div class="info-item-v" onclick="showPanel('perfil-ingreso', this)">
+                <div class="icon-box-v"><span class="material-symbols-outlined">login</span></div>
+                <div><h3>Perfil de Ingreso</h3><p>Habilidades requeridas.</p></div>
+            </div>
+
+            <div class="info-item-v" onclick="showPanel('perfil-egreso', this)">
+                <div class="icon-box-v"><span class="material-symbols-outlined">verified_user</span></div>
+                <div><h3>Perfil de Egreso</h3><p>Competencias y habilidades.</p></div>
+            </div>
+
+            <div class="info-item-v" onclick="showPanel('requisitos-egreso', this)">
+                <div class="icon-box-v"><span class="material-symbols-outlined">receipt_long</span></div>
+                <div><h3>Requisitos de Egreso</h3><p>Para concluir el plan.</p></div>
+            </div>
+
+            <div class="info-item-v" onclick="showPanel('campo-laboral', this)">
+                <div class="icon-box-v"><span class="material-symbols-outlined">work</span></div>
+                <div><h3>Campo Laboral</h3><p>Áreas de desempeño profesional.</p></div>
+            </div>
+
+            <div class="info-item-v" onclick="showPanel('mapa', this)">
+                <div class="icon-box-v"><span class="material-symbols-outlined">table_chart</span></div>
+                <div><h3>Mapa Curricular</h3><p>Plan de estudios en bloques.</p></div>
+            </div>
+
+            <div class="info-item-v" onclick="showPanel('mapa-pdf', this)">
+                <div class="icon-box-v"><span class="material-symbols-outlined">picture_as_pdf</span></div>
+                <div><h3>Mapa Curricular PDF</h3><p>Abrir archivo original.</p></div>
+            </div>
+        </nav>
+
+        <section class="info-panels-v">
+            
+            <div id="info-general" class="info-panel active">
+                   <div class="panel-body">
+                    <h3 class="panel-title">Información General</h3>
+                    <div class="scroll-box">
+                        <ul style="margin-left: 20px;">
+                                <h3>Prácticas Formativas</h3>
+                                <p>Se contemplan tres prácticas formativas del Derecho: público, privado y social, en el cuarto, quinto y sexto semestre, respectivamente. Cada una tiene un valor de 8 créditos, y los estudiantes deben realizar ocho horas a la semana durante todo el semestre, con un total aproximado de 150 hrs.</p>
+
+                        <div class="tabla-responsiva" style="margin-top: 20px; margin-bottom: 30px;">
+                                    <table class="tabla-temporalidad">
+                                        <h3>Unidades de aprendizaje</h3>
+                                        <thead>
+                                            <tr>
+
+                                                <tr class="head-azul">
+                                                <th>Ciclo Formativo</th>
+                                                <th>U.A.</th>
+                                                <th>Hrs Teóricas</th>
+                                                <th>Hrs Prácticas</th>
+                                                <th>Créditos</th>
+                                                <th>Porcentaje</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>Básico</td>
+                                                <td>21</td>
+                                                <td>55</td>
+                                                <td>30</td>
+                                                <td>138</td>
+                                                <td>38.8%</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Profesional</td>
+                                                <td>25</td>
+                                                <td>56</td>
+                                                <td>59</td>
+                                                <td>169</td>
+                                                <td>47.5%</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Especializado</td>
+                                                <td>9</td>
+                                                <td>19</td>
+                                                <td>13</td>
+                                                <td>49</td>
+                                                <td>18.8%</td>
+                                            </tr>
+                                            <tr style="font-weight:bold; background:#e2e8f0;">
+                                                <td>Totales</td>
+                                                <td>55</td>
+                                                <td>130</td>
+                                                <td>102</td>
+                                                <td>356</td>
+                                                <td>100%</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <h3> Temporalidad de egreso en semestres y años para cursar la Licenciatura en Derecho. </h3>
+                                
+ 
+                                    <table class="tabla-temporalidad">
+                                        <thead>
+                                            <tr class="head-azul">
+                                                <th colspan="2">Mínimo</th>
+                                                <th colspan="2">Ideal</th>
+                                                <th colspan="2">Máximo</th>
+                                            </tr>
+                                            <tr class="head-blanco">
+                                                <th>Semestres</th>
+                                                <th>Años</th>
+                                                <th>Semestres</th>
+                                                <th>Años</th>
+                                                <th>Semestres</th>
+                                                <th>Años</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <tr style="font-weight:bold; background:#e2e8f0;"></tr>
+                                                <td>7</td>
+                                                <td>3.5</td>
+                                                <td>9</td>
+                                                <td>4.5</td>
+                                                <td>13</td>
+                                                <td>6.5</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                        
+                            <br>
+                            <h3> inglés</h3>
+                            <p>Es un requisito de egreso que las y los estudiantes acrediten en la Licenciatura como mínimo el nivel A2 del Marco Común Europeo de Referencia para las Lenguas, que es el estándar internacional que define la competencia lingüística.</p>
+                            <li>1. Cada estudiante durante el primer semestre (de preferencia al inicio) deberá presentar de manera obligatoria el examen diagnóstico en los diferentes planteles de la Dirección de Lenguas (CELE) o presentar su constancia de certificación internacional 1, para que el CELE la valide, (de no ser validada, deberán presentar el examen referido).</li>
+                            <li>2. Las y los estudiantes que comprueben mediante alguna de las dos formas anteriores en el primer semestre que cuentan con el nivel A2 no estarán obligados a asistir, ni acreditar los cursos de inglés que oferta el CELE.</li>
+                            <li>3. Las y los estudiantes que no puedan acreditar el nivel A2 en el primer semestre, deberán de forma obligatoria inscribirse y acreditar todos los cursos semestrales de inglés acordes a su nivel, durante su trayectoria académica que oferta el CELE hasta acreditar en el examen diagnóstico el nivel A2 o superior.</li>
+                            <li>4. Cada estudiante puede realizar una vez por semestre su examen diagnóstico de forma voluntaria para evaluar sus conocimientos y cuando alcance el nivel A2, ya no estará obligado a cursar más semestres de inglés.</li>
+                            <li>5. En caso de no haber acreditado hasta el momento el nivel A2, tres semestres antes de concluir la carrera, se deberá llevar a cabo el refrendo del idioma. Esto es presentar por segunda ocasión el examen de diagnóstico en el CELE. La acreditación del nivel A2 ante el CELE entregado en su unidad académica tres semestres antes, contará como comprobante para cumplir con el requisito de egreso. Si obtiene un nivel más bajo del A2, deberá obligatoriamente cursar en el CELE o en su unidad académica los cursos que se organicen para subsanar esta situación anómala antes de que concluya sus semestres lectivos y pueda cumplir con el requisito de egreso lingüístico.</li>
+                            <li>6. En los casos en los que las personas en formación elijan cursar el idioma en otra institución, para no deber cursar en el CELE las clases de inglés, deberán comprobar su competencia lingüística presentando el documento que avale la certificación internacional del nivel A2. El CELE hará la validación de la certificación internacional que presente el estudiantado, comprobando el nivel A2 como mínimo.</li>
+                            <li>7. Una vez aprobado el refrendo y acreditado como mínimo el nivel A2, éste será válido para el trámite de egreso, en los tiempos en que decida realizar sus trámites conducentes para obtener el certificado de estudios ante Servicios Escolares de la Universidad Autónoma del Estado de Morelos.</li>       
+                            <br>
+                            <h3> Formación Integral</h3>
+                            <p>El currículo de la Licenciatura en Derecho denominará formación integral a todas las actividades académicas, deportivas o culturales, que deberán realizar quienes estudian del primero al séptimo semestre a razón de 16 horas por periodo, con valor curricular de un crédito al semestre, comprobables con los acreditamientos (AC) correspondientes. </p>        
+                             <br>       
+                            <h3>Tutorías grupales obligatorias</h3>
+                            <p>En la tutoría grupal se abordan temas, dudas y problemáticas comunes, a partir de sesiones de información, orientación y asesoría en las cuales la estrategia central es la facilitación de la reflexión colectiva y la toma de decisiones grupales.</p>
+                            <p>La tutoría grupal obligatoria también prevé intervenciones en forma de asesoría para estudiantes con dificultades académicas y con unidades de aprendizaje que presentan mayores índices de reprobación.</p>
+                            <br>        
+                            <li>Semestre 1°: Tutoría grupal obligatoria para la inserción a la vida universitaria.</li>    
+                            <br>        
+                            <li>Semestre 4°: Tutoría grupal obligatoria o de apoyo en el ciclo disciplinar.</li>
+                            <br>        
+                            <li>Semestre 8°: Tutoría grupal obligatoria como apoyo a la eficiencia terminal y el egreso.</li>
+                            
+
+                                </div>
+                            </div>
+                        </div>
+                        </ul>
+                    </div>
+                     </div>
+                 </div>
+
+             <div id="perfil-ingreso" class="info-panel">
+                <h3 class="panel-title">Perfil de Ingreso</h3>
+                <div class="panel-body">
+                    <p>Es deseable que las personas egresadas del nivel medio superior que aspiren a ingresar la Licenciatura en derecho, cuenten con el perfil de egreso que determina el Modelo Educativo para la Educación Obligatoria del Nivel Medio Superior Educar para la libertad y la creatividad, establecido por la Secretaría de Educación Pública. </p>
+                    <div class="scroll-box">
+                        <ul style="margin-left: 20px;">
+                            <li>Se conoce y valora a sí mismo y aborda problemas y retos teniendo en cuenta los objetivos que persigue. </li>
+                            <li>Escucha, interpreta y emite mensajes pertinentes en distintos contextos mediante la utilización de medios, códigos y herramientas apropiados. </li>
+                            <li>Desarrolla innovaciones y propone soluciones a problemas a partir de métodos establecidos. </li>
+                            <li>Sustenta una postura personal sobre temas de interés y relevancia general, considerando otros puntos de vista de manera crítica y reflexiva. </li>
+                            <li>Aprende por iniciativa e interés propio a lo largo de la vida. </li>
+                            <li>Participa con una conciencia cívica y ética en la vida de su comunidad, región, México y el mundo.  </li>
+                            <li>Mantiene una actitud respetuosa hacia la interculturalidad y la diversidad de creencias, valores, ideas y prácticas sociales. </li>
+                            <li>Contribuye al desarrollo sustentable de manera crítica con acciones responsables.</li>
+                        </ul>
+                    </div>
+                </div>
+             </div>
+
+             <div id="requisitos-egreso" class="info-panel">
+                <h3 class="panel-title">Requisitos de Egreso</h3>
+                <div class="panel-body">
+                    <div class="scroll-box">
+                        <ul style="margin-left: 20px;">
+                            <li>Cubrir el 100% de los créditos además de las actividades académicas correspondientes que establece el plan de estudios para la Licenciatura en Derecho en los tiempos estipulados por el mismo. </li>
+                            <li>Entregar documento oficial que acredite el nivel A2 de inglés expedido por el CELE. </li>
+                            <li>Entregar constancia de liberación del Servicio Social. </li>
+                            <li>Entregar constancia de liberación de Prácticas Profesionales. </li>
+                            <li>Entregar constancia de No Adeudo a la Biblioteca. </li>
+                            <li>Entregar constancia de No Adeudo a Contabilidad.</li>
+                        </ul>
+                    </div>
+                </div>
+             </div>
+
+             <div id="perfil-egreso" class="info-panel">
+                <h3 class="panel-title">Perfil de Egreso</h3>
+                <div class="panel-body">
+                    <p>El egresado desarrolla competencias genéricas y específicas, destacando</p>
+                    <div class="scroll-box">
+                        <ul style="margin-left: 20px;">
+                            <h3>Generación y aplicación de conocimiento </h3>
+                            <li>CG1. Capacidad para el aprendizaje de forma autónoma. </li>
+                            <li>CG2. Capacidad de pensamiento crítico y reflexivo. </li>
+                            <li>CG3. Capacidad crítica y autocrítica. </li>
+                            <li>CG4. Capacidad de abstracción, análisis y síntesis. </li>
+                            <li>CG5. Capacidad de aprender y actualizarse permanentemente. </li>
+                            <li>CG6. Capacidad para la investigación. </li>
+                            <li>CG7. Capacidad de comunicación en un segundo idioma.</li>
+                            <li>CG8. Capacidad creativa. </li>
+                            <li>CG9. Capacidad de comunicación oral y escrita. </li>
+                            <li>CG10. Habilidades en el uso de las tecnologías de la información y de la comunicación. </li>
+                            <li>CG11. Habilidades para buscar, procesar y analizar información.</li>
+                            <br>
+                            <h3>Aplicables en contexto </h3>
+                            <li>CG12. Habilidad para trabajar en forma autónoma.   </li>
+                            <li>CG13. Capacidad de aplicar los conocimientos en la práctica.  </li>
+                            <li>CG14. Capacidad para formular y gestionar proyectos. </li>
+                            <li>CG15. Capacidad para identificar, plantear y resolver problemas. </li>
+                            <li>CG16. Capacidad para tomar decisiones.  </li>
+                            <li>CG17. Capacidad para actuar en nuevas situaciones.  </li>
+                            <li>CG18. Conocimiento sobre el área de estudio y la profesión.  </li>
+                            <li>CG19. Capacidad de motivar y conducir hacia metas comunes.  </li>
+                            <li>CG20. Habilidad para el trabajo en forma colaborativa. </LI>
+                            <br>    
+                            <h3>Sociales </h3>
+                            <li>CG21. Capacidad de expresión y comunicación. </li>
+                            <li>CG22. Participación con responsabilidad social. </li>
+                            <li>CG23. Capacidad para organizar y planificar el tiempo. </li>
+                            <li>CG24. Capacidad de trabajo en equipo. </li>
+                            <li>CG25. Habilidades interpersonales. </li>
+                            <li>CG26. Habilidades para trabajar en contextos culturales diversos. </li>
+                            <br>
+                            <h3>Éticas </h3>
+                            <li>CG27. Autodeterminación y cuidado de sí. </li>
+                            <li>CG28. Compromiso ciudadano.</li>
+                            <li>CG29. Compromiso con la preservación del medio ambiente. </li>
+                            <li>CG30. Compromiso con su medio sociocultural. </li>
+                            <li>CG31. Valoración y respeto por la diversidad y la multiculturalidad. </li>
+                            <li>CG32. Compromiso con la calidad. </li>
+                            <li>CG33. Compromiso ético.</li>
+                            <br>
+                            <P>Competencias Específicas </P>
+                            <h3>Derecho Público</h3>
+                            <li>CE1. Plantea soluciones a problemas jurídicos concretos mediante el conocimiento, interpretación y aplicación de normas y principios del sistema jurídico nacional e internacional para contribuir a una convivencia armónica de la sociedad.  </li>
+                            <li>CE2. Conoce e interpreta los principios generales del derecho, así como las normas y principios del sistema jurídico nacional e Internacional, como parte de su formación profesional para su aplicación en casos concretos, con conciencia crítica. </li>
+                            <br>    
+                            <h3>Derecho Privado</h3>
+                            <li>CE3. Dialoga, debate y concilia distintos puntos de vista el interés, a partir de una perspectiva jurídica, para la solución de conflictos articulando mecanismos alternativos de solución de controversias, con sentido ético y humanista. </li>
+                            <li>CE4. Asesora y gestiona intereses de los particulares conforme a la normativa vigente para la resolución efectiva tanto en conflictos y controversias como en actos de representación jurídicos.  </li>
+                            <br>
+                            <h3>Derecho Social</h3>
+                            <li>CE5. Busca la justicia y equidad en todas las situaciones en las que interviene, mediante el análisis de los dilemas jurídicos a los que se enfrenta en la vida cotidiana, para coadyuvar a la consecución de la armonía y bienestar social. </li>
+                            <li>CE6. Reconoce y aplica principios éticos-jurídicos en su ejercicio profesional, manteniendo un actuar responsable, leal, diligente y transparente, para buscar la justicia social y la equidad.  </li>
+                            <br>    
+                            <h3>General</h3>
+                            <li>CE7. Actúa jurídica y técnicamente en diferentes instancias administrativas o judiciales con la debida utilización de procesos, actos y procedimientos, mediante la aplicación metodológica de la legislación aplicable a cada caso en concreto, con ética y valor humano. </li>
+                            <li>CE8. Aplica los conocimientos sólidamente adquiridos de manera colaborativa e interdisciplinaria, a través de la resolución de casos prácticos, para la aplicación de la ley y el bienestar social.  </li>
+                            <br>
+                            <h3>Para la Generación y Aplicación del Conocimiento </h3>
+                            <li>CE9. Aplica criterios de investigación científica, mediante el procesamiento adecuado de información del ámbito jurídico, en desarrollo de su actividad profesional con habilidad de enfrentar y adaptarse a nuevas situaciones.  </li>
+                            <br>    
+                            <h3>idioma</h3>
+                            <li>CE10. Comprende, comunica y describe, de forma oral y escrita frases y expresiones de uso cotidiano en el idioma inglés mediante intercambios sencillos y directos de información básica para relacionarse en situaciones conocidas o habituales y aspectos de su entorno. </li>
+                        </ul>
+                    </div>
+                </div>
+             </div>
+
+             <div id="campo-laboral" class="info-panel">
+                <h3 class="panel-title">Campo Laboral</h3>
+                <div class="panel-body">
+                    <p>La Licenciatura en Derecho forma profesionistas capaces de atender necesidades jurídicas de la sociedad en una amplia gama de ámbitos:</p>
+                    <div class="scroll-box">
+                        <ul style="margin-left: 20px;">
+                            <h3>Ejercicio profesional</h3>
+                            <li>Despachos jurídicos privados (litigio civil, penal, mercantil, laboral, fiscal y administrativo).</li>
+                            <li>Asesoría jurídica independiente o consultoría especializada.</li>
+                            <li>Notarías y corredurías públicas.</li>
+                            <li>Mediación, conciliación y arbitraje en mecanismos alternos de solución de conflictos.</li>
+                            <br>
+                            <h3>Sector público</h3>
+                            <li>Fiscalías y Ministerios Públicos en el sistema de justicia penal acusatorio oral.</li>
+                            <li>Poder Judicial Federal y de los Estados (juzgados, tribunales, magistraturas).</li>
+                            <li>Defensoría pública y procuradurías de derechos humanos.</li>
+                            <li>Administración pública federal, estatal y municipal (asesoría jurídica gubernamental).</li>
+                            <li>Cámaras legislativas y organismos electorales.</li>
+                            <li>Servicios de Administración Tributaria (SAT) y áreas jurídicas fiscales.</li>
+                            <br>
+                            <h3>Sector privado y organizaciones</h3>
+                            <li>Departamentos jurídicos de empresas (derecho corporativo y laboral).</li>
+                            <li>Instituciones financieras, aseguradoras y empresas multinacionales.</li>
+                            <li>Organizaciones no gubernamentales y defensa de derechos humanos.</li>
+                            <li>Organismos internacionales y derecho internacional público y privado.</li>
+                            <br>
+                            <h3>Investigación, docencia y emergentes</h3>
+                            <li>Investigación jurídica y docencia universitaria (con estudios de posgrado).</li>
+                            <li>Derecho en las TIC, comercio electrónico y propiedad intelectual.</li>
+                            <li>Derecho ambiental, agroalimentario y de la cuarta revolución industrial.</li>
+                        </ul>
+                    </div>
+                </div>
+             </div>
+
+            <div id="mapa" class="info-panel">
+                <h3 class="panel-title">Mapa Curricular (Materias por Semestre)</h3>
+                <div class="panel-body">
+                    <div class="scroll-box mapa-grid-bloques" style="max-height: 550px;">
+                        
+                        <div class="materia-bloque-card">
+                            <div class="materia-bloque-header">1° SEMESTRE</div>
+                            <div class="materia-bloque-body">
+                                <ul>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Política, Estado y Sistemas jurídicos</li>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Taller de expresión y disertación jurídica general</li>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Introducción a la ciencia jurídica</li>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Sociología jurídica</li>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Economía en la globalización</li>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Historia jurídica de occidente</li>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Transversal multimodal</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="materia-bloque-card">
+                            <div class="materia-bloque-header">2° SEMESTRE</div>
+                            <div class="materia-bloque-body">
+                                <ul>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Sistemas jurídicos contemporáneos</li>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Argumentación jurídica</li>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Hermenéutica y aplicación de normas</li>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Oralidad en el sistema jurídico mexicano</li>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Fundamentos del proceso</li>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Transversal multimodal</li>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Pensamiento complejo</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="materia-bloque-card">
+                            <div class="materia-bloque-header">3° SEMESTRE</div>
+                            <div class="materia-bloque-body">
+                                <ul>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Bienes, derechos reales y sucesiones</li>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Teoría jurídica del delito y de la pena</li>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Fundamentos de Derecho Administrativo</li>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Derechos Humanos</li>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Filosofía del Derecho</li>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Mecanismos alternos de solución de conflictos</li>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Metodología jurídica y técnicas de investigación</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="materia-bloque-card">
+                            <div class="materia-bloque-header">4° SEMESTRE</div>
+                            <div class="materia-bloque-body">
+                                <ul>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Teoría general de las obligaciones</li>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Estudio de los tipos penales</li>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Estructura y funcionamiento de la administración pública</li>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Derecho corporativo</li>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Derechos económicos, sociales y culturales</li>
+                                    <li><span class="material-symbols-outlined materia-item-icon">handshake</span> Prácticas formativas de derecho público</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="materia-bloque-card">
+                            <div class="materia-bloque-header">5° SEMESTRE</div>
+                            <div class="materia-bloque-body">
+                                <ul>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Contratos Civiles</li>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Sistema de Justicia penal acusatorio oral</li>
+                                    <li><span class="material-symbols-outlined materia-item-icon">star</span> Optativa</li>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Derecho constitucional</li>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Derecho Procesal Mercantil</li>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Responsabilidad Social y desarrollo sostenible</li>
+                                    <li><span class="material-symbols-outlined materia-item-icon">handshake</span> Prácticas formativas de derecho privado</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="materia-bloque-card">
+                            <div class="materia-bloque-header">6° SEMESTRE</div>
+                            <div class="materia-bloque-body">
+                                <ul>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Derecho Procesal Civil</li>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Gobierno y Gestión Municipal</li>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Mecanismos orgánicos de Constitucionalidad</li>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Derecho Financiero y Tributario</li>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Derecho Laboral</li>
+                                    <li><span class="material-symbols-outlined materia-item-icon">handshake</span> Prácticas formativas de derecho social</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="materia-bloque-card">
+                            <div class="materia-bloque-header">7° SEMESTRE</div>
+                            <div class="materia-bloque-body">
+                                <ul>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Derecho de las Familias</li>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Derecho Internacional Público</li>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Procedimientos Fiscales y administrativos</li>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Procedimiento de Amparo</li>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Derecho en las TIC</li>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Derecho de la Seguridad Social</li>
+                                    <li><span class="material-symbols-outlined materia-item-icon">volunteer_activism</span> Servicio Social</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="materia-bloque-card">
+                            <div class="materia-bloque-header">8° SEMESTRE</div>
+                            <div class="materia-bloque-body">
+                                <ul>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Derecho Ambiental</li>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Derecho Internacional Privado</li>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Derecho Agroalimentario</li>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Práctica de Derecho de Amparo</li>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Derecho en la cuarta revolución industrial</li>
+                                    <li><span class="material-symbols-outlined materia-item-icon">check_circle</span> Derecho Procesal laboral y de la seguridad social</li>
+                                    <li><span class="material-symbols-outlined materia-item-icon">menu_book</span> Seminario de Investigación</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="materia-bloque-card">
+                            <div class="materia-bloque-header">9° SEMESTRE</div>
+                            <div class="materia-bloque-body">
+                                <ul>
+                                    <li><span class="material-symbols-outlined materia-item-icon">star</span> Optativa</li>
+                                    <li><span class="material-symbols-outlined materia-item-icon">star</span> Optativa</li>
+                                    <li><span class="material-symbols-outlined materia-item-icon">work</span> Prácticas Profesionales</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                    </div> </div> </div> <div id="mapa-pdf" class="info-panel">
+                <h3 class="panel-title">Mapa Curricular </h3>
+                <div class="panel-body">
+                    <p style="margin-bottom: 20px;">A continuación se muestra el archivo PDF oficial del plan de estudios.</p>
+                    <div class="pdf-embed-container">
+                        <embed src="img/Plan_de_estudios_derecho_2020.pdf" type="application/pdf" width="100%" height="100%" />
+                    </div>
+                </div>
+            </div>
+
+        </section> 
+    </main>
+
+    <footer class="bottom-footer">
+        <span class="material-symbols-outlined">location_on</span>
+        ESCUELA DE ESTUDIOS SUPERIORES DE ATLATLAHUCAN SUBSEDE TOTOLAPAN
+    </footer>
+
+    <script>
+        function showPanel(idPanel, itemClickeado) {
+            const paneles = document.querySelectorAll('.info-panel');
+            paneles.forEach(p => p.classList.remove('active'));
+
+            const items = document.querySelectorAll('.info-item-v');
+            items.forEach(i => i.classList.remove('active'));
+
+            document.getElementById(idPanel).classList.add('active');
+            itemClickeado.classList.add('active');
+        }
+
+        let tiempoInactividad;
+        function regresarPortada() { window.location.href = 'portada.html'; }
+        function reiniciarTemporizador() {
+            clearTimeout(tiempoInactividad);
+            tiempoInactividad = setTimeout(regresarPortada, 600000); 
+        }
+        window.onload = reiniciarTemporizador;
+        document.onmousemove = reiniciarTemporizador;
+        document.onkeypress = reiniciarTemporizador;
+        document.ontouchstart = reiniciarTemporizador; 
+        document.onclick = reiniciarTemporizador;
+    </script>
+    <script>window.UAEM_PAGE_AREA = 'programa-educativo';</script>
+    <script src="config.js"></script>
+    <script src="chatbot.js"></script>
+</body>
+</html>

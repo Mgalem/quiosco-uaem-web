@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <script src="auth-visitante.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portada Kiosco Universitario UAEM</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <script src="temas-festivos.js"></script>
+    <script src="animaciones-festivas.js"></script>
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Montserrat', sans-serif; }
+
+        body {
+            background-color: #000d1a;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            user-select: none;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* ====================== VIDEO DE FONDO ====================== */
+        .video-fondo {
+            position: absolute;
+            top: 50%; left: 50%;
+            min-width: 100%; min-height: 100%;
+            width: auto; height: auto;
+            transform: translate(-50%, -50%);
+            z-index: 0;
+            object-fit: cover;
+            opacity: 0.4;
+        }
+
+        /* ====================== CAPAS DECORATIVAS ====================== */
+        .overlay {
+            position: absolute; inset: 0;
+            background: linear-gradient(160deg, rgba(0,15,40,0.93) 0%, rgba(0,40,80,0.85) 45%, rgba(0,10,30,0.96) 100%);
+            z-index: 1;
+        }
+
+        /* Grid animada */
+        .grid-bg {
+            position: absolute; inset: 0; z-index: 2;
+            background-image:
+                linear-gradient(rgba(100,180,255,0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(100,180,255,0.05) 1px, transparent 1px);
+            background-size: 55px 55px;
+            animation: gridFlow 22s linear infinite;
+            pointer-events: none;
+        }
+        @keyframes gridFlow {
+            0%   { transform: translateY(0); }
+            100% { transform: translateY(55px); }
+        }
+
+        /* Scanlines */
+        .scanlines {
+            position: absolute; inset: 0; z-index: 3;
+            background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.05) 2px, rgba(0,0,0,0.05) 4px);
+            pointer-events: none;
+        }
+
+        /* Orbs */
+        .orb { position: absolute; border-radius: 50%; filter: blur(90px); pointer-events: none; z-index: 2; }
+
+        @keyframes orbFloat {
+            0%,100% { transform: translate(0,0) scale(1); }
+            40%  { transform: translate(40px,-32px) scale(1.07); }
+            70%  { transform: translate(-22px,25px) scale(0.96); }
+        }
+        .orb-1 {
+            width: 700px; height: 700px;
+            background: radial-gradient(circle, rgba(0,100,220,0.38) 0%, transparent 70%);
+            top: -200px; right: -100px;
+            animation: orbFloat 16s ease-in-out infinite;
+        }
+        .orb-2 {
+            width: 500px; height: 500px;
+            background: radial-gradient(circle, rgba(251,191,36,0.22) 0%, transparent 70%);
+            bottom: -120px; left: -80px;
+            animation: orbFloat 20s ease-in-out infinite reverse;
+        }
+        .orb-3 {
+            width: 300px; height: 300px;
+            background: radial-gradient(circle, rgba(100,210,255,0.15) 0%, transparent 70%);
+            top: 45%; left: 10%;
+            animation: orbFloat 13s ease-in-out infinite 3s;
+        }
+
+        /* Canvas de partículas */
+        #canvas-particulas { position: absolute; inset: 0; z-index: 4; pointer-events: none; }
+
+        /* Línea neon superior */
+        .neon-top {
+            position: absolute; top: 0; left: 0; right: 0; height: 2px;
+            background: linear-gradient(90deg, transparent 0%, #60a5fa 25%, #fbbf24 50%, #60a5fa 75%, transparent 100%);
+            z-index: 20;
+            animation: neonGlow 4s ease-in-out infinite;
+        }
+        @keyframes neonGlow {
+            0%,100% { opacity: 0.5; }
+            50% { opacity: 1; box-shadow: 0 0 20px rgba(96,165,250,0.4); }
+        }
+
+        /* ====================== CONTENIDO PRINCIPAL ====================== */
+        .contenido {
+            position: relative; z-index: 10;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            gap: 30px;
+            flex: 1;
+            padding: 30px 20px;
+        }
+
+        /* Animaciones de entrada escalonadas */
+        @keyframes entradaUp {
+            from { opacity: 0; transform: translateY(45px); filter: blur(8px); }
+            to   { opacity: 1; transform: translateY(0); filter: blur(0); }
+        }
+        @keyframes entradaDown {
+            from { opacity: 0; transform: translateY(-25px); filter: blur(6px); }
+            to   { opacity: 1; transform: translateY(0); filter: blur(0); }
+        }
+
+        /* Badge superior */
+        .badge-top {
+            display: flex; align-items: center; gap: 12px;
+            background: rgba(96,165,250,0.1);
+            border: 1px solid rgba(96,165,250,0.25);
+            padding: 9px 28px; border-radius: 50px;
+            opacity: 0;
+            animation: entradaDown 0.9s ease-out 0.2s forwards;
+        }
+        .badge-top span {
+            color: rgba(255,255,255,0.65);
+            font-size: 0.72rem; letter-spacing: 4px;
+            text-transform: uppercase; font-weight: 600;
+        }
+        .badge-dot {
+            width: 7px; height: 7px; border-radius: 50%;
+            background: #fbbf24; box-shadow: 0 0 8px #fbbf24;
+            animation: dotBlink 1.8s ease-in-out infinite;
+        }
+        @keyframes dotBlink {
+            0%,100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.3; transform: scale(0.65); }
+        }
+
+        /* Logos */
+        .logos-row {
+            display: flex; gap: 28px;
+            opacity: 0;
+            animation: entradaUp 0.9s ease-out 0.45s forwards;
+        }
+        .logo-wrapper { position: relative; }
+        .logo-ring {
+            position: absolute; inset: -8px; border-radius: 22px;
+            border: 1.5px solid rgba(96,165,250,0.35);
+            animation: ringPulse 2.5s ease-out infinite;
+        }
+        .logo-ring-2 { animation-delay: 1.25s; }
+        @keyframes ringPulse {
+            0%   { transform: scale(1);   opacity: 0.7; }
+            100% { transform: scale(1.3); opacity: 0; }
+        }
+        .logo-box {
+            position: relative; z-index: 1;
+            background: rgba(255,255,255,0.96);
+            padding: 14px 18px; border-radius: 14px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.45), 0 0 0 1px rgba(255,255,255,0.15);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .logo-box:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 22px 50px rgba(0,0,0,0.55), 0 0 25px rgba(96,165,250,0.15);
+        }
+        .logo-img { height: 78px; width: auto; object-fit: contain; }
+
+        /* Texto hero */
+        .hero-text {
+            text-align: center;
+            opacity: 0;
+            animation: entradaUp 1s ease-out 0.7s forwards;
+        }
+        .hero-kw {
+            font-size: 0.78rem; font-weight: 700;
+            letter-spacing: 5px; text-transform: uppercase;
+            color: #fbbf24; margin-bottom: 12px;
+            text-shadow: 0 0 25px rgba(251,191,36,0.6);
+        }
+
+        @keyframes shimmerHero {
+            0%   { background-position: 0% center; }
+            100% { background-position: 200% center; }
+        }
+        .hero-h1 {
+            font-size: 5.2rem; font-weight: 900;
+            line-height: 1.02; letter-spacing: -2px;
+            margin-bottom: 18px;
+            background: linear-gradient(90deg,
+                #ffffff 0%, #e0f2fe 15%, #fde68a 30%,
+                #ffffff 50%, #93c5fd 65%, #fde68a 80%, #ffffff 100%
+            );
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: shimmerHero 6s linear infinite;
+        }
+
+        .desc-box {
+            max-width: 660px; margin: 0 auto;
+            background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.04) 100%);
+            border: 1px solid rgba(255,255,255,0.18);
+            backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
+            padding: 20px 42px; border-radius: 20px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.15);
+            font-size: 1.1rem; color: rgba(255,255,255,0.88); line-height: 1.7;
+        }
+
+        /* ====================== BOTÓN CON BORDE GIRATORIO ====================== */
+        .btn-wrapper {
+            position: relative;
+            display: flex; align-items: center;
+            margin-top: 5px;
+            opacity: 0;
+            animation: entradaUp 1s ease-out 1.0s forwards;
+        }
+
+        .btn-spin-container {
+            position: relative;
+            display: inline-flex;
+            border-radius: 62px;
+        }
+
+
+        @keyframes rotateBorder { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+        .btn-spin-border { display: none; }
+
+        /* Fondo interior oscuro para que se vea el borde */
+        .btn-spin-bg {
+            position: absolute; inset: 2px;
+            border-radius: 62px;
+            background: #001830;
+            z-index: 1;
+        }
+
+        @keyframes btnFloat {
+            0%,100% { transform: translateY(0px); }
+            50% { transform: translateY(-7px); }
+        }
+
+        .btn-start {
+            position: relative; z-index: 2;
+            background: linear-gradient(135deg, #ffffff 0%, #dbeafe 100%);
+            color: #00335b;
+            font-size: 1.55rem; font-weight: 800;
+            padding: 22px 72px; border-radius: 60px;
+            text-decoration: none;
+            display: flex; align-items: center; gap: 16px;
+            letter-spacing: 3px;
+            animation: btnFloat 3.2s ease-in-out infinite;
+        }
+        .btn-start:active { transform: scale(0.96) !important; animation: none; }
+
+        @keyframes flechaMove {
+            0%,100% { transform: translateX(0); }
+            50% { transform: translateX(12px); }
+        }
+        .flecha { font-size: 2rem; animation: flechaMove 2s ease-in-out infinite; }
+
+        /* ====================== MASCOTA ====================== */
+        .mascota-video {
+            position: absolute;
+            left: 105%; bottom: -65px;
+            height: 265px; width: auto;
+            object-fit: contain; background: transparent;
+            filter: drop-shadow(0 20px 25px rgba(0,0,0,0.55));
+            pointer-events: none; z-index: 3;
+            transition: opacity 1.2s ease;
+        }
+
+        /* ====================== FOOTER ====================== */
+        .footer-bar {
+            position: relative; z-index: 10;
+            display: flex; justify-content: center; align-items: center; gap: 16px;
+            padding: 15px 20px;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            opacity: 0;
+            animation: entradaUp 0.8s ease-out 1.3s forwards;
+        }
+        .footer-bar span {
+            color: rgba(255,255,255,0.32);
+            font-size: 0.7rem; letter-spacing: 4px; text-transform: uppercase;
+        }
+        .footer-line {
+            flex: 1; max-width: 80px; height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15));
+        }
+        .footer-line:last-child { background: linear-gradient(90deg, rgba(255,255,255,0.15), transparent); }
+    </style>
+    <link rel="stylesheet" href="responsive.css">
+</head>
+<body>
+
+    <div class="neon-top"></div>
+
+    <!-- Fondo -->
+    <video autoplay loop playsinline class="video-fondo">
+        <source src="img/fondo-universidad.mp4" type="video/mp4">
+    </video>
+    <div class="overlay"></div>
+    <div class="grid-bg"></div>
+    <div class="scanlines"></div>
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+    <canvas id="canvas-particulas"></canvas>
+
+    <!-- Contenido principal -->
+    <main class="contenido">
+
+        <div class="badge-top">
+            <div class="badge-dot"></div>
+            <span>Sistema de Información Universitaria</span>
+            <div class="badge-dot"></div>
+        </div>
+
+        <div class="logos-row">
+            <div class="logo-wrapper">
+                <div class="logo-ring"></div>
+                <div class="logo-ring logo-ring-2"></div>
+                <div class="logo-box"><img src="img/logo-uaem.png" alt="Logo UAEM" class="logo-img"></div>
+            </div>
+            <div class="logo-wrapper">
+                <div class="logo-ring"></div>
+                <div class="logo-ring logo-ring-2"></div>
+                <div class="logo-box"><img src="img/logo-eesa.png" alt="Logo EESA" class="logo-img"></div>
+            </div>
+        </div>
+
+        <div class="hero-text">
+            <div class="hero-kw">✦ Kiosco Universitario Interactivo ✦</div>
+            <h1 class="hero-h1">Bienvenido a tu<br>Universidad</h1>
+            <div class="desc-box">
+                Explora nuestra oferta educativa, mapas curriculares y perfiles de egreso de la
+                Escuela de Estudios Superiores de Atlatlahucan Subsede Totolapan.
+            </div>
+        </div>
+
+        <div class="btn-wrapper">
+            <div class="btn-spin-container">
+                <div class="btn-spin-border"></div>
+                <div class="btn-spin-bg"></div>
+                <a href="index.html" class="btn-start">
+                    INICIAR RECORRIDO <span class="flecha">›</span>
+                </a>
+            </div>
+
+            <video class="mascota-video" id="mascotaVideo" autoplay playsinline>
+                <source src="img/mascota.webm" type="video/webm">
+            </video>
+        </div>
+
+    </main>
+
+    <footer class="footer-bar">
+        <div class="footer-line"></div>
+        <span>Universidad Autónoma del Estado de Morelos</span>
+        <div class="footer-line"></div>
+    </footer>
+
+    <script>
+        // ===== SISTEMA DE PARTÍCULAS =====
+        const canvas = document.getElementById('canvas-particulas');
+        const ctx = canvas.getContext('2d');
+
+        function redimensionar() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        redimensionar();
+        window.addEventListener('resize', redimensionar);
+
+        class Particula {
+            constructor() { this.reiniciar(true); }
+            reiniciar(inicio = false) {
+                this.x = Math.random() * canvas.width;
+                this.y = inicio ? Math.random() * canvas.height : canvas.height + 5;
+                this.tam = Math.random() * 1.8 + 0.3;
+                this.vx = (Math.random() - 0.5) * 0.3;
+                this.vy = -(Math.random() * 0.6 + 0.18);
+                this.alpha = Math.random() * 0.55 + 0.1;
+                const cols = (window.TEMA_FESTIVO && window.TEMA_FESTIVO.particleColors) || ['#fde68a', 'rgba(200,228,255,0.9)'];
+                this.color = cols[Math.floor(Math.random() * cols.length)];
+            }
+            actualizar() {
+                this.x += this.vx;
+                this.y += this.vy;
+                if (this.y < -5) this.reiniciar();
+            }
+            dibujar() {
+                ctx.globalAlpha = this.alpha;
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.tam, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        const particulas = Array.from({ length: 100 }, () => new Particula());
+
+        (function animar() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.globalAlpha = 1;
+            particulas.forEach(p => { p.actualizar(); p.dibujar(); });
+            requestAnimationFrame(animar);
+        })();
+
+        // ===== MASCOTA: PAUSA DE 2 MINUTOS TRAS TERMINAR =====
+        const mascota = document.getElementById('mascotaVideo');
+
+        mascota.addEventListener('ended', () => {
+            mascota.style.opacity = '0';
+            setTimeout(() => {
+                mascota.style.visibility = 'hidden';
+                // Vuelve a aparecer después de 2 minutos
+                setTimeout(() => {
+                    mascota.style.visibility = 'visible';
+                    mascota.currentTime = 0;
+                    mascota.play().catch(() => {});
+                    setTimeout(() => { mascota.style.opacity = '1'; }, 100);
+                }, 120000);
+            }, 1300);
+        });
+    </script>
+
+    <!-- Chatbot UAEM -->
+    <script src="config.js"></script>
+    <script src="chatbot.js"></script>
+</body>
+</html>

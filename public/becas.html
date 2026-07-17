@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <script src="auth-visitante.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Becas y Apoyos — UAEM Subsede Totolapan</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700;900&display=swap" rel="stylesheet" />
+  <script src="temas-festivos.js"></script>
+  <script src="animaciones-festivas.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Montserrat', sans-serif; }
+    body { background: linear-gradient(135deg, #2d1b69 0%, #4a148c 50%, #1a0033 100%); color: #fff; min-height: 100vh; user-select: none; overflow-x: hidden; }
+    header { background: rgba(0,0,0,0.35); padding: 22px 40px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 4px 18px rgba(0,0,0,0.3); }
+    header h1 { font-size: 1.4rem; letter-spacing: 1px; font-weight: 700; }
+    .back-btn { background: rgba(255,255,255,0.12); color: #fff; border: 1px solid rgba(255,255,255,0.25); padding: 10px 22px; border-radius: 30px; cursor: pointer; font-weight: 600; font-size: 0.95rem; }
+    .back-btn:hover { background: rgba(255,255,255,0.22); }
+    main { padding: 60px 40px; max-width: 1200px; margin: 0 auto; }
+    h2 { font-size: 2.5rem; margin-bottom: 12px; background: linear-gradient(135deg, #f0b3ff, #fff); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+    .lead { color: #c9b3d9; margin-bottom: 40px; font-size: 1.05rem; }
+    .section { margin-bottom: 40px; }
+    .section h3 { font-size: 1.4rem; margin-bottom: 18px; color: #f0b3ff; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px; }
+    .card { background: rgba(255,255,255,0.06); backdrop-filter: blur(14px); border: 1px solid rgba(255,255,255,0.12); border-radius: 16px; padding: 24px; transition: transform .2s; }
+    .card:hover { transform: translateY(-4px); }
+    .card .icon { font-size: 2rem; margin-bottom: 10px; }
+    .card h4 { font-size: 1.05rem; margin-bottom: 8px; }
+    .card p { color: #c9b3d9; font-size: 0.9rem; line-height: 1.55; }
+    .hint { margin-top: 50px; padding: 22px 28px; background: rgba(255, 200, 80, 0.1); border: 1px solid rgba(255,200,80,0.25); border-radius: 14px; color: #ffd57a; font-size: 0.95rem; }
+  </style>
+    <link rel="stylesheet" href="responsive.css">
+</head>
+<body>
+  <header>
+    <h1>💰 Becas, Prácticas, Servicio Social y Seguro Facultativo</h1>
+    <button class="back-btn" onclick="window.location.href='portada.html'">← Volver al inicio</button>
+  </header>
+  <main>
+    <h2>Apoyos para Estudiantes</h2>
+    <p class="lead">Conoce los apoyos económicos, programas de prácticas profesionales, servicio social y cobertura médica disponibles.</p>
+
+    <div class="section">
+      <h3>Becas Disponibles</h3>
+      <div class="grid">
+        <div class="card"><div class="icon">🇲🇽</div><h4>Beca Benito Juárez</h4><p>Apoyo bimestral federal. Promedio mínimo 8.0 y no recibir otra beca federal.</p></div>
+        <div class="card"><div class="icon">⭐</div><h4>Beca de Excelencia UAEM</h4><p>Promedio ≥ 9.5 sin reprobar. Cubre porcentaje de inscripción y reinscripción.</p></div>
+        <div class="card"><div class="icon">🚌</div><h4>Beca de Transporte</h4><p>Para estudiantes que viven fuera de Totolapan. Requiere comprobante de domicilio.</p></div>
+        <div class="card"><div class="icon">🍽️</div><h4>Beca Alimentaria</h4><p>Vales en el comedor universitario para alumnos con bajos recursos.</p></div>
+        <div class="card"><div class="icon">🏆</div><h4>Beca Deportiva / Cultural</h4><p>Para representantes de la UAEM en competencias y eventos culturales.</p></div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>Otros Trámites</h3>
+      <div class="grid">
+        <div class="card"><div class="icon">💼</div><h4>Prácticas Profesionales</h4><p>Mínimo 480 horas, a partir del 7° semestre o 70% de créditos. Requiere convenio.</p></div>
+        <div class="card"><div class="icon">🤝</div><h4>Servicio Social</h4><p>480 horas en programas comunitarios. Mínimo 6 meses tras alcanzar 60% de créditos.</p></div>
+        <div class="card"><div class="icon">🏥</div><h4>Seguro Facultativo IMSS</h4><p>Cobertura médica gratuita para todos los estudiantes inscritos.</p></div>
+      </div>
+    </div>
+
+    <div class="hint">💡 Para requisitos exactos y fechas de convocatoria, pregúntale al <b>Venado UAEM</b> en el botón inferior derecho.</div>
+  </main>
+
+  <script>
+    let inactivityTimer;
+    function goHome() { window.location.href = 'portada.html'; }
+    function resetTimer() { clearTimeout(inactivityTimer); inactivityTimer = setTimeout(goHome, 600000); }
+    window.onload = resetTimer; document.onmousemove = resetTimer; document.onclick = resetTimer; document.ontouchstart = resetTimer;
+  </script>
+
+  <script>window.UAEM_PAGE_AREA = 'becas';</script>
+  <script src="config.js"></script>
+  <script src="chatbot.js"></script>
+</body>
+</html>
