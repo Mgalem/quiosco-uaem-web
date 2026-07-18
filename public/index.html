@@ -486,25 +486,28 @@
     <script src="config.js"></script>
     <script src="chatbot.js"></script>
 
-    <!-- Acceso oculto al panel de administración (logo EESA del lado derecho) -->
+    <!-- Acceso al panel: SOLO para el administrador (ya con sesión, sin pedir
+         contraseña de nuevo). Para alumnos/visitantes el clic no hace nada. -->
     <script>
       (function () {
         const logo = document.getElementById('adminLoginLogo');
         if (!logo) return;
+        function esStaff() { return !!(window.UAEM_VISITANTE && window.UAEM_VISITANTE.tipo === 'staff'); }
+        function marcar() {
+          // Muestra el logo como "clickeable" solo si es administrador
+          if (esStaff()) { logo.style.cursor = 'pointer'; logo.title = 'Ir al panel administrativo'; }
+          else { logo.style.cursor = 'default'; logo.removeAttribute('title'); }
+        }
+        marcar();
+        window.addEventListener('uaem-visitante', marcar);
         logo.addEventListener('click', function (e) {
           e.preventDefault();
+          if (!esStaff()) return; // alumnos/visitantes: sin acceso
           const base = (window.UAEM_CONFIG && window.UAEM_CONFIG.SERVER_URL) || window.location.origin;
-          // Pasamos la URL actual como ?back= para que el panel sepa a dónde regresar
           const back = encodeURIComponent(window.location.href);
-          const destino = base + '/admin?back=' + back;
-          // En el quiosco (Electron) usamos el camino confiable para saltar de
-          // file:// a http:// (evita la pantalla en blanco). En navegador normal,
-          // navegación directa.
-          if (window.electronKiosk && window.electronKiosk.navigateTo) {
-            window.electronKiosk.navigateTo(destino);
-          } else {
-            window.location.href = destino;
-          }
+          const destino = base + '/admin?back=' + back; // el panel entra solo (ya hay sesión)
+          if (window.electronKiosk && window.electronKiosk.navigateTo) window.electronKiosk.navigateTo(destino);
+          else window.location.href = destino;
         });
       })();
     </script>

@@ -64,19 +64,30 @@
     mostrarBadge(visitante);
     window.dispatchEvent(new CustomEvent('uaem-visitante', { detail: visitante }));
   }
+  // Entrar como PERSONAL del panel (admin/guardián): mismo token que usa /admin.
+  function entrarAdmin(staffToken, nombre) {
+    localStorage.setItem('uaem_token', staffToken);
+    var v = { tipo: 'staff', nombre: nombre || 'Personal', token: staffToken };
+    window.UAEM_VISITANTE = v;
+    ov.remove();
+    mostrarBadge(v);
+    window.dispatchEvent(new CustomEvent('uaem-visitante', { detail: v }));
+  }
   function mostrarBadge(v) {
     var b = document.getElementById('uaemv-badge');
     if (b) b.remove();
     b = document.createElement('div');
     b.id = 'uaemv-badge';
-    b.innerHTML = (v.tipo === 'estudiante' ? '🎓 ' : '👤 ') + esc(v.nombre.split(' ')[0]) +
-      ' <button id="uaemv-salir">Salir</button>';
+    var ic = v.tipo === 'estudiante' ? '🎓 ' : v.tipo === 'staff' ? '🔑 ' : '👤 ';
+    b.innerHTML = ic + esc(v.nombre.split(' ')[0]) + ' <button id="uaemv-salir">Salir</button>';
     document.body.appendChild(b);
     document.getElementById('uaemv-salir').onclick = salir;
   }
   function salir() {
-    api('/api/visitante/logout', {});
-    localStorage.removeItem(KEY); token = '';
+    try { api('/api/visitante/logout', {}); } catch (e) {}
+    var st = localStorage.getItem('uaem_token');
+    if (st) { try { fetch(API + '/api/logout', { method: 'POST', headers: { 'Authorization': 'Bearer ' + st } }); } catch (e) {} }
+    localStorage.removeItem(KEY); localStorage.removeItem('uaem_token'); token = '';
     window.location.reload();
   }
 
@@ -93,13 +104,41 @@
       '<label>Correo electrónico</label><input id="v-correo" type="email" placeholder="">' +
       '<button class="btn" id="v-continuar">Continuar</button>' +
       '<button class="link" id="v-ir-login">Ya tengo cuenta · Iniciar sesión</button>' +
+      '<button class="link" id="v-ir-admin" style="color:#94a3b8">Acceso administrador</button>' +
       '<div class="msg" id="v-msg"></div></div>';
     ov.querySelectorAll('.tipo').forEach(function (el) {
       el.onclick = function () { estado.tipo = el.dataset.t; aplicarTipo(); };
     });
     document.getElementById('v-continuar').onclick = registrar;
     document.getElementById('v-ir-login').onclick = pintarLogin;
+    document.getElementById('v-ir-admin').onclick = pintarAdmin;
     aplicarTipo();
+  }
+  function pintarAdmin() {
+    estado.modo = 'admin';
+    ov.innerHTML =
+      '<div class="caja"><div class="venado">🔑</div><h2>Administrador</h2>' +
+      '<p class="sub">Acceso para personal (panel + asistente)</p>' +
+      '<label>Usuario</label><input id="a-user" autocomplete="username">' +
+      '<label>Contraseña</label><input id="a-pass" type="password" autocomplete="current-password">' +
+      '<button class="btn" id="a-entrar">Ingresar</button>' +
+      '<button class="link" id="a-volver">← Volver</button>' +
+      '<div class="msg" id="v-msg"></div></div>';
+    document.getElementById('a-entrar').onclick = loginAdmin;
+    document.getElementById('a-volver').onclick = pintarRegistro;
+    document.getElementById('a-pass').onkeydown = function (e) { if (e.key === 'Enter') loginAdmin(); };
+    setTimeout(function () { document.getElementById('a-user').focus(); }, 60);
+  }
+  function loginAdmin() {
+    var usuario = document.getElementById('a-user').value.trim();
+    var password = document.getElementById('a-pass').value;
+    var btn = document.getElementById('a-entrar'); btn.disabled = true; msg('Entrando…', true);
+    fetch(API + '/api/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ usuario: usuario, password: password }) })
+      .then(function (r) { return r.json(); }).then(function (j) {
+        btn.disabled = false;
+        if (!j.ok || !j.token) return msg(j.error || 'Usuario o contraseña incorrectos');
+        entrarAdmin(j.token, j.usuario && j.usuario.nombre);
+      }).catch(function () { btn.disabled = false; msg('Error de conexión'); });
   }
   function aplicarTipo() {
     ov.querySelectorAll('.tipo').forEach(function (el) { el.classList.toggle('act', el.dataset.t === estado.tipo); });
@@ -171,11 +210,24 @@
   }
 
   // ── Arranque: ¿ya hay sesión válida? ──
-  if (token) {
-    api('/api/visitante/yo').then(function (j) {
-      if (j.ok) entrar(j.visitante); else pintarRegistro();
-    }).catch(pintarRegistro);
+  function restaurarVisitante() {
+    if (token) {
+      api('/api/visitante/yo').then(function (j) {
+        if (j.ok) entrar(j.visitante); else pintarRegistro();
+      }).catch(pintarRegistro);
+    } else {
+      pintarRegistro();
+    }
+  }
+  // 1º: ¿hay sesión de administrador guardada? (no vuelve a pedir contraseña)
+  var staffToken = localStorage.getItem('uaem_token');
+  if (staffToken) {
+    fetch(API + '/api/yo', { headers: { 'Authorization': 'Bearer ' + staffToken } })
+      .then(function (r) { return r.json(); }).then(function (j) {
+        if (j.ok) entrarAdmin(staffToken, j.usuario && j.usuario.nombre);
+        else restaurarVisitante();
+      }).catch(restaurarVisitante);
   } else {
-    pintarRegistro();
+    restaurarVisitante();
   }
 })();

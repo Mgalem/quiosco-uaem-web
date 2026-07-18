@@ -1,13 +1,14 @@
 
 (function () {
-  // El asistente SOLO existe para estudiantes verificados. Se inicia cuando
-  // auth-visitante.js confirma la sesión (evento 'uaem-visitante').
-  function esEstudiante() {
-    return !!(window.UAEM_VISITANTE && window.UAEM_VISITANTE.tipo === 'estudiante');
+  // El asistente existe para estudiantes verificados y para el personal (admin).
+  // Se inicia cuando auth-visitante.js confirma la sesión (evento 'uaem-visitante').
+  function puedeUsarBot() {
+    var v = window.UAEM_VISITANTE;
+    return !!(v && (v.tipo === 'estudiante' || v.tipo === 'staff'));
   }
   function iniciarChatbot() {
   if (window.__UAEM_CHATBOT_LOADED__) return;
-  if (!esEstudiante()) return;
+  if (!puedeUsarBot()) return;
   window.__UAEM_CHATBOT_LOADED__ = true;
 
   const SERVER_URL = (window.UAEM_CONFIG && window.UAEM_CONFIG.SERVER_URL) || window.location.origin;
@@ -342,7 +343,10 @@
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          // Estudiante → X-Visitante; personal/admin → Authorization. El servidor
+          // acepta el que corresponda; mandamos el mismo token en ambos.
           'X-Visitante': (window.UAEM_VISITANTE && window.UAEM_VISITANTE.token) || '',
+          'Authorization': 'Bearer ' + ((window.UAEM_VISITANTE && window.UAEM_VISITANTE.token) || ''),
         },
         body: JSON.stringify({ question, area: currentArea || undefined }),
       });

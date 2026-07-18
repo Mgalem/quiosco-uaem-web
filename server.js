@@ -443,12 +443,17 @@ const server = http.createServer(async (req, res) => {
     return servirEstatico(res, 'portada.html');
   }
 
-  // ── CHATBOT (solo estudiantes verificados) ──────────────────
+  // ── CHATBOT (estudiantes verificados o personal del panel) ──
   if (metodo === 'POST' && ruta === '/api/chat') {
     const vis = visitanteDeReq(req);
-    if (!vis || !vis.verificado || vis.tipo !== 'estudiante') {
-      return sendJson(res, 403, { found: false, error: 'Solo estudiantes verificados pueden usar el asistente.' });
+    const staff = usuarioDeToken(tokenDeReq(req)); // admin/guardián: privilegios de alumno
+    const esEstudiante = vis && vis.verificado && vis.tipo === 'estudiante';
+    if (!esEstudiante && !staff) {
+      return sendJson(res, 403, { found: false, error: 'Solo estudiantes verificados o el personal pueden usar el asistente.' });
     }
+    const quien = esEstudiante
+      ? { nombre: vis.nombre, correo: vis.correo, matricula: vis.matricula }
+      : { nombre: staff.nombre, correo: '(personal)', matricula: null };
     let question = '', area = '';
     try {
       const b = await jsonBody(req);
@@ -456,8 +461,7 @@ const server = http.createServer(async (req, res) => {
       area = (b.area || '').toString().trim();
       if (!question) return sendJson(res, 200, { found: false });
 
-      const quien = { nombre: vis.nombre, correo: vis.correo, matricula: vis.matricula };
-      console.log(`[chat] ${vis.correo} · area="${area || 'general'}" · q="${question.slice(0, 60)}"`);
+      console.log(`[chat] ${quien.correo} · area="${area || 'general'}" · q="${question.slice(0, 60)}"`);
       const answer = await askIA(question, area);
       if (pareceSinRespuesta(answer)) {
         registrarPendiente(area, question, answer, quien);
@@ -466,7 +470,7 @@ const server = http.createServer(async (req, res) => {
       return sendJson(res, 200, { found: true, answer });
     } catch (err) {
       console.error('[chat error]', err.message);
-      if (question) registrarPendiente(area, question, null, { nombre: vis.nombre, correo: vis.correo, matricula: vis.matricula });
+      if (question) registrarPendiente(area, question, null, quien);
       return sendJson(res, 200, { found: false });
     }
   }
