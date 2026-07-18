@@ -359,6 +359,27 @@ function visitanteDeReq(req) {
 }
 
 // ─────────────────────────────────────────────────────────────
+// VIDEOS de estudiantes ("Impulso Digital")
+// Máx 5 por semana; se renuevan cada lunes (cada semana su propia lista).
+// Se guardan enlaces de YouTube (no archivos).
+// ─────────────────────────────────────────────────────────────
+let videos = leerJSON('videos.json', []);
+let _seqVid = videos.reduce((m, v) => Math.max(m, v.id || 0), 0);
+const guardarVideos = () => guardarJSON('videos.json', videos);
+const MAX_VIDEOS_SEMANA = 5;
+
+function lunesActual() {
+  const d = new Date();
+  const off = (d.getUTCDay() + 6) % 7; // 0 = lunes
+  return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() - off)).toISOString().slice(0, 10);
+}
+function youtubeId(url) {
+  const m = (url || '').match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/|v\/))([A-Za-z0-9_-]{11})/);
+  return m ? m[1] : null;
+}
+function videosDeSemana(sem) { sem = sem || lunesActual(); return videos.filter(v => v.semana === sem); }
+
+// ─────────────────────────────────────────────────────────────
 // Utilidades HTTP
 // ─────────────────────────────────────────────────────────────
 function cors(res) {
@@ -553,6 +574,13 @@ const server = http.createServer(async (req, res) => {
     return sendJson(res, 200, { ok: true });
   }
 
+  // Videos de la semana (público: los ve la página del carrusel)
+  if (metodo === 'GET' && ruta === '/api/videos') {
+    const sem = lunesActual();
+    const lista = videosDeSemana(sem).slice().sort((a, b) => (a.creado < b.creado ? -1 : 1));
+    return sendJson(res, 200, { ok: true, semana: sem, limite: MAX_VIDEOS_SEMANA, videos: lista });
+  }
+
   // A partir de aquí TODO requiere sesión (de STAFF)
   const yo = usuarioDeToken(tokenDeReq(req));
   if (ruta.startsWith('/api/') && !yo) {
@@ -562,6 +590,50 @@ const server = http.createServer(async (req, res) => {
   // Datos de mi sesión (para restaurar al recargar)
   if (metodo === 'GET' && ruta === '/api/yo') {
     return sendJson(res, 200, { ok: true, usuario: publico(yo), areas: AREAS });
+  }
+
+  // ── USUARIOS REGISTRADOS (base de datos de visitantes) ──────
+  if (metodo === 'GET' && ruta === '/api/visitantes') {
+    if (yo.rol !== 'admin') return sendJson(res, 403, { ok: false, error: 'Solo el administrador' });
+    const q = (url.searchParams.get('q') || '').toLowerCase();
+    const tipo = url.searchParams.get('tipo') || '';
+    let lista = visitantes.map(v => ({
+      tipo: v.tipo, nombre: v.nombre, correo: v.correo, matricula: v.matricula || null,
+      verificado: !!v.verificado, creado: v.creado,
+    }));
+    if (tipo) lista = lista.filter(v => v.tipo === tipo);
+    if (q) lista = lista.filter(v => (v.nombre + ' ' + v.correo + ' ' + (v.matricula || '')).toLowerCase().includes(q));
+    return sendJson(res, 200, {
+      ok: true,
+      total: visitantes.length,
+      estudiantes: visitantes.filter(v => v.tipo === 'estudiante').length,
+      visitantesN: visitantes.filter(v => v.tipo === 'normal').length,
+      registros: lista.reverse(),
+    });
+  }
+
+  // ── VIDEOS (admin): agregar / borrar ────────────────────────
+  if (metodo === 'POST' && ruta === '/api/videos') {
+    const b = await jsonBody(req);
+    const titulo = (b.titulo || '').toString().trim();
+    const enlace = (b.url || '').toString().trim();
+    if (!enlace) return sendJson(res, 400, { ok: false, error: 'Pega el enlace del video (YouTube)' });
+    const sem = lunesActual();
+    if (videosDeSemana(sem).length >= MAX_VIDEOS_SEMANA)
+      return sendJson(res, 400, { ok: false, error: `Ya hay ${MAX_VIDEOS_SEMANA} videos esta semana. Se renuevan el lunes.` });
+    const yt = youtubeId(enlace);
+    if (!yt) return sendJson(res, 400, { ok: false, error: 'El enlace no parece de YouTube. Usa un link de youtube.com o youtu.be' });
+    const v = {
+      id: ++_seqVid, titulo: titulo || 'Video', tipo: 'youtube', url: enlace, videoId: yt,
+      autor: yo.nombre, semana: sem, creado: new Date().toISOString(),
+    };
+    videos.push(v); guardarVideos();
+    return sendJson(res, 200, { ok: true, video: v });
+  }
+  if (metodo === 'DELETE' && ruta === '/api/videos') {
+    const id = Number(url.searchParams.get('id'));
+    videos = videos.filter(v => v.id !== id); guardarVideos();
+    return sendJson(res, 200, { ok: true });
   }
 
   // ── PREGUNTAS PENDIENTES ────────────────────────────────────

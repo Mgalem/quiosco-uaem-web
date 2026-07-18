@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <script src="auth-visitante.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Impulso Digital — UAEM Totolapan</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="responsive.css">
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; font-family:'Montserrat',sans-serif; }
+    body { background:radial-gradient(circle at 20% 0%, #2a0a4a 0%, #0b0620 60%, #05030f 100%); color:#fff; min-height:100vh; }
+    header { display:flex; align-items:center; gap:14px; padding:18px 26px; }
+    header a.volver { color:#fff; text-decoration:none; background:rgba(255,255,255,.12); padding:9px 16px; border-radius:20px; font-weight:600; font-size:.9rem; }
+    header a.volver:hover { background:rgba(255,255,255,.22); }
+    header .t { font-weight:800; font-size:1.3rem; background:linear-gradient(90deg,#f107a3,#7b2ff7,#00d4ff); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
+    header .sub { font-size:.72rem; color:#b9a9d6; }
+    .wrap { max-width:960px; margin:0 auto; padding:6px 20px 60px; }
+    .stage { position:relative; padding-top:56.25%; border-radius:18px; overflow:hidden; background:#000; box-shadow:0 24px 70px rgba(120,40,200,.35); }
+    .stage iframe, .stage #player { position:absolute; inset:0; width:100%; height:100%; border:0; }
+    .overlay { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; background:rgba(5,3,15,.55); cursor:pointer; z-index:5; }
+    .overlay .play { width:88px; height:88px; border-radius:50%; background:linear-gradient(135deg,#f107a3,#7b2ff7); display:flex; align-items:center; justify-content:center; font-size:40px; box-shadow:0 10px 30px rgba(241,7,163,.5); }
+    .overlay p { margin-top:14px; font-weight:600; }
+    .info { display:flex; align-items:center; gap:12px; margin:16px 2px; }
+    .info h2 { font-size:1.25rem; }
+    .info .aut { color:#b9a9d6; font-size:.82rem; }
+    .info .cont { margin-left:auto; color:#b9a9d6; font-size:.82rem; }
+    .tira { display:flex; gap:12px; overflow-x:auto; padding:6px 2px 12px; }
+    .thumb { flex:0 0 168px; cursor:pointer; border-radius:12px; overflow:hidden; position:relative; border:3px solid transparent; transition:transform .15s; }
+    .thumb:hover { transform:translateY(-3px); }
+    .thumb.act { border-color:#f107a3; }
+    .thumb img { width:100%; height:95px; object-fit:cover; display:block; }
+    .thumb .cap { position:absolute; left:0; right:0; bottom:0; background:linear-gradient(transparent,rgba(0,0,0,.85)); color:#fff; font-size:.72rem; padding:14px 8px 6px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .vacio { text-align:center; padding:80px 20px; color:#b9a9d6; }
+    .vacio .em { font-size:52px; display:block; margin-bottom:12px; }
+    .cta { text-align:center; margin-top:26px; color:#cdbff0; font-size:.9rem; }
+  </style>
+</head>
+<body>
+  <header>
+    <a class="volver" href="index.html">← Menú</a>
+    <div><div class="t">Impulso Digital 🎬</div><div class="sub">Videos creados por estudiantes UAEM Totolapan</div></div>
+  </header>
+  <div class="wrap" id="wrap"><div class="vacio">Cargando…</div></div>
+
+  <script src="https://www.youtube.com/iframe_api"></script>
+  <script>
+    var VIDEOS = [], idx = 0, player = null, apiLista = false, iniciado = false;
+    var esc = function(s){ return (s||'').replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); };
+
+    function cargar(){
+      fetch('/api/videos').then(function(r){return r.json();}).then(function(d){
+        VIDEOS = (d.videos||[]);
+        pintar();
+        if (VIDEOS.length && apiLista) crearPlayer();
+      }).catch(function(){ document.getElementById('wrap').innerHTML='<div class="vacio">No se pudieron cargar los videos.</div>'; });
+    }
+
+    function pintar(){
+      var w = document.getElementById('wrap');
+      if (!VIDEOS.length){
+        w.innerHTML = '<div class="vacio"><span class="em">🎬</span><h2>Aún no hay videos esta semana</h2>'+
+          '<p style="margin-top:8px">Cada semana los estudiantes suben nuevos videos. ¡Vuelve pronto!</p></div>';
+        return;
+      }
+      var tiras = VIDEOS.map(function(v,i){
+        return '<div class="thumb'+(i===idx?' act':'')+'" data-i="'+i+'" onclick="ir('+i+')">'+
+          '<img src="https://img.youtube.com/vi/'+esc(v.videoId)+'/mqdefault.jpg">'+
+          '<div class="cap">'+esc(v.titulo)+'</div></div>';
+      }).join('');
+      w.innerHTML =
+        '<div class="stage"><div id="player"></div>'+
+          '<div class="overlay" id="ov" onclick="empezar()"><div class="play">▶</div><p>Reproducir videos</p></div>'+
+        '</div>'+
+        '<div class="info"><div><h2 id="v-tit"></h2><div class="aut" id="v-aut"></div></div>'+
+          '<div class="cont" id="v-cont"></div></div>'+
+        '<div class="tira">'+tiras+'</div>'+
+        '<div class="cta">¿Eres estudiante y quieres aparecer aquí? Manda tu video a un administrador. ✨</div>';
+      actualizarInfo();
+    }
+    function actualizarInfo(){
+      if(!VIDEOS.length) return;
+      var v=VIDEOS[idx];
+      var t=document.getElementById('v-tit'); if(t) t.textContent=v.titulo;
+      var a=document.getElementById('v-aut'); if(a) a.textContent='por '+(v.autor||'Estudiante UAEM');
+      var c=document.getElementById('v-cont'); if(c) c.textContent=(idx+1)+' / '+VIDEOS.length;
+      document.querySelectorAll('.thumb').forEach(function(el){ el.classList.toggle('act', +el.dataset.i===idx); });
+    }
+
+    // YouTube IFrame API
+    window.onYouTubeIframeAPIReady = function(){ apiLista=true; if(VIDEOS.length) crearPlayer(); };
+    function crearPlayer(){
+      if(player) return;
+      player = new YT.Player('player', {
+        videoId: VIDEOS[idx].videoId,
+        playerVars: { autoplay:0, rel:0, modestbranding:1, playsinline:1 },
+        events: { 'onStateChange': function(e){ if(e.data===YT.PlayerState.ENDED) siguiente(); } }
+      });
+    }
+    function empezar(){
+      var ov=document.getElementById('ov'); if(ov) ov.style.display='none';
+      iniciado=true;
+      if(player && player.playVideo) player.playVideo();
+    }
+    function siguiente(){ ir((idx+1)%VIDEOS.length); }
+    function ir(i){
+      idx=i; actualizarInfo();
+      var ov=document.getElementById('ov'); if(ov) ov.style.display='none'; iniciado=true;
+      if(player && player.loadVideoById) player.loadVideoById(VIDEOS[idx].videoId);
+    }
+
+    cargar();
+  </script>
+</body>
+</html>

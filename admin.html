@@ -135,6 +135,8 @@
     <button data-tab="pendientes" class="act" onclick="irTab(this)">Preguntas pendientes<span class="cont-badge oculto" id="badge-pend">0</span></button>
     <button data-tab="respuestas" onclick="irTab(this)">Respuestas guardadas</button>
     <button data-tab="documentacion" onclick="irTab(this)">Documentación</button>
+    <button data-tab="videos" onclick="irTab(this)">Videos</button>
+    <button data-tab="registrados" id="tab-registrados" onclick="irTab(this)">Registrados</button>
     <button data-tab="usuarios" id="tab-usuarios" onclick="irTab(this)">Usuarios</button>
   </nav>
 
@@ -193,6 +195,35 @@
       <h2 class="sec">Usuarios registrados</h2>
       <div id="lista-usuarios"></div>
     </section>
+
+    <!-- VIDEOS (Impulso Digital) -->
+    <section id="s-videos" class="oculto">
+      <div class="panel-form">
+        <h3>Impulso Digital · agregar video de YouTube</h3>
+        <p style="color:#64748b;font-size:.85rem;margin:-8px 0 14px">Máximo <b>5 por semana</b>. Se renuevan cada lunes. <span id="v-info"></span></p>
+        <div class="grid">
+          <div><label>Título</label><input id="vi-titulo" placeholder="Ej. Conoce la UAEM Totolapan"></div>
+          <div style="grid-column:1/-1"><label>Enlace de YouTube</label><input id="vi-url" placeholder="https://youtu.be/… o https://youtube.com/watch?v=…"></div>
+        </div>
+        <div class="acciones"><button class="btn btn-p" onclick="agregarVideo()">Agregar video</button></div>
+      </div>
+      <h2 class="sec">Videos de esta semana</h2>
+      <div id="lista-videos" class="doc-grid"></div>
+    </section>
+
+    <!-- REGISTRADOS (base de datos de visitantes) -->
+    <section id="s-registrados" class="oculto">
+      <div class="controles">
+        <select id="rg-tipo" onchange="cargarRegistrados()">
+          <option value="">Todos</option>
+          <option value="estudiante">Estudiantes</option>
+          <option value="normal">Visitantes</option>
+        </select>
+        <input id="rg-busca" placeholder="Buscar por nombre, correo o matrícula…" oninput="cargarRegistrados()">
+      </div>
+      <div id="rg-resumen" style="color:#64748b;font-size:.85rem;margin-bottom:12px"></div>
+      <div id="lista-registrados"></div>
+    </section>
   </main>
 </div>
 
@@ -207,6 +238,19 @@
     <div class="acciones" style="margin-top:16px;justify-content:flex-end">
       <button class="btn btn-g" onclick="cerrarModalPass()">Cancelar</button>
       <button class="btn btn-p" onclick="guardarPass()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal ver / editar documentación -->
+<div id="modal-doc" class="oculto" style="position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:200;padding:16px">
+  <div style="background:#fff;border-radius:14px;padding:22px;width:640px;max-width:96vw;box-shadow:0 20px 60px rgba(0,0,0,.4)">
+    <h3 style="margin:0 0 4px;color:#003366">Editar documentación</h3>
+    <p id="md-nombre" style="color:#64748b;font-size:.85rem;margin:0 0 12px"></p>
+    <textarea id="md-cont" style="width:100%;min-height:300px;border:1px solid #cbd5e1;border-radius:8px;padding:12px;outline:none;font-family:monospace;font-size:.85rem"></textarea>
+    <div class="acciones" style="margin-top:14px;justify-content:flex-end">
+      <button class="btn btn-g" onclick="cerrarModalDoc()">Cancelar</button>
+      <button class="btn btn-p" onclick="guardarDocEditado()">Guardar cambios</button>
     </div>
   </div>
 </div>
@@ -270,8 +314,9 @@
     try{ if('Notification' in window && Notification.permission==='default') Notification.requestPermission(); }catch{}
     $('#h-nombre').textContent = YO.nombre;
     $('#h-rol').textContent = YO.rol==='admin' ? 'Administrador' : ('Guardián de '+labelArea(YO.area));
-    // Solo admin ve Usuarios
+    // Solo admin ve Usuarios y Registrados
     $('#tab-usuarios').classList.toggle('oculto', YO.rol!=='admin');
+    $('#tab-registrados').classList.toggle('oculto', YO.rol!=='admin');
     // Selectores de área
     const opsTodas = '<option value="">Todas las áreas</option>' + AREAS.map(a=>`<option value="${a.id}">${esc(a.label)}</option>`).join('');
     const opsAreas = AREAS.map(a=>`<option value="${a.id}">${esc(a.label)}</option>`).join('');
@@ -291,10 +336,12 @@
   function irTabNombre(tab){
     tabActual=tab;
     document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('act', b.dataset.tab===tab));
-    ['pendientes','respuestas','documentacion','usuarios'].forEach(t=> $('#s-'+t).classList.toggle('oculto', t!==tab));
+    ['pendientes','respuestas','documentacion','videos','registrados','usuarios'].forEach(t=> $('#s-'+t).classList.toggle('oculto', t!==tab));
     if(tab==='pendientes') cargarPendientes();
     if(tab==='respuestas') cargarRespuestas();
     if(tab==='documentacion') cargarDoc();
+    if(tab==='videos') cargarVideos();
+    if(tab==='registrados') cargarRegistrados();
     if(tab==='usuarios') cargarUsuarios();
   }
 
@@ -338,6 +385,7 @@
     cont.innerHTML = items.map(p=>`
       <div class="card pend">
         <div class="meta"><span class="chip">${esc(p.areaLabel||labelArea(p.area))}</span><span>${fecha(p.fecha)}</span></div>
+        ${p.quien?`<div class="intento" style="background:#eef2ff;color:#3a4a63"><b>👤 ${esc(p.quien.nombre||'—')}</b>${p.quien.matricula?` · Matrícula: <b>${esc(p.quien.matricula)}</b>`:''}${p.quien.correo?` · ${esc(p.quien.correo)}`:''}</div>`:''}
         <div class="preg">${esc(p.pregunta)}</div>
         ${p.intentoBot?`<div class="intento"><b>Intento del bot:</b> ${esc(p.intentoBot)}</div>`:''}
         <textarea id="rp${p.id}" placeholder="Escribe la respuesta oficial (se guardará y el bot la usará después)…"></textarea>
@@ -398,7 +446,9 @@
         <div class="cnt">${a.archivos.length} archivo(s) de documentación</div>
         ${a.archivos.length? a.archivos.map(f=>`
           <div class="doc-file">📄 ${esc(f.nombre)} <span class="tam">(${kb(f.tamano)})</span>
-            <span class="x" title="Eliminar" onclick="borrarDoc('${a.area}','${esc(f.nombre)}')">✕</span></div>`).join('')
+            <span style="margin-left:auto;display:flex;gap:8px">
+              <button class="btn btn-g" style="padding:4px 10px;font-size:.75rem" onclick="verDoc('${a.area}','${esc(f.nombre)}')">Ver / Editar</button>
+              <span class="x" title="Eliminar" onclick="borrarDoc('${a.area}','${esc(f.nombre)}')">✕</span></span></div>`).join('')
           : '<div class="doc-file" style="color:#94a3b8">Sin archivos todavía</div>'}
       </div>`).join('');
     cont.innerHTML = cards + `
@@ -409,6 +459,66 @@
       </div>`;
   }
   async function borrarDoc(area,nombre){ if(!confirm('¿Eliminar '+nombre+'?'))return; await api('/api/documentacion?area='+area+'&nombre='+encodeURIComponent(nombre),{method:'DELETE'}); cargarDoc(); }
+  let _docArea=null,_docNombre=null;
+  async function verDoc(area,nombre){
+    const r=await api('/api/documentacion/ver?area='+area+'&nombre='+encodeURIComponent(nombre));
+    if(!r.ok){ toast(r.error||'No se pudo abrir'); return; }
+    _docArea=area; _docNombre=nombre;
+    $('#md-nombre').textContent=labelArea(area)+' · '+nombre;
+    $('#md-cont').value=r.contenido||'';
+    $('#modal-doc').classList.remove('oculto');
+  }
+  function cerrarModalDoc(){ $('#modal-doc').classList.add('oculto'); }
+  async function guardarDocEditado(){
+    const r=await api('/api/documentacion/subir',{method:'POST',body:JSON.stringify({area:_docArea,nombre:_docNombre,contenido:$('#md-cont').value})});
+    if(r.ok){ toast('Documento actualizado'); cerrarModalDoc(); cargarDoc(); } else toast(r.error||'Error');
+  }
+
+  // ── REGISTRADOS (base de datos de visitantes) ──
+  async function cargarRegistrados(){
+    const tipo=$('#rg-tipo').value, q=$('#rg-busca').value;
+    const d=await api('/api/visitantes?tipo='+tipo+'&q='+encodeURIComponent(q));
+    $('#rg-resumen').innerHTML='Total: <b>'+(d.total||0)+'</b> · Estudiantes: <b>'+(d.estudiantes||0)+'</b> · Visitantes: <b>'+(d.visitantesN||0)+'</b>';
+    const items=d.registros||[];
+    if(!items.length){ $('#lista-registrados').innerHTML='<div class="vacio"><span class="em">🗃️</span>Aún no hay usuarios registrados.</div>'; return; }
+    $('#lista-registrados').innerHTML=items.map(v=>`
+      <div class="card ${v.tipo==='estudiante'?'ok':''}">
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <b style="font-size:1.05rem">${v.tipo==='estudiante'?'🎓':'👤'} ${esc(v.nombre)}</b>
+          <span class="chip">${v.tipo==='estudiante'?'Estudiante':'Visitante'}</span>
+          ${v.verificado?'<span class="chip" style="background:#e8f5e9;color:#2e7d32">Verificado</span>':'<span class="chip" style="background:#fff3e0;color:#e65100">Sin verificar</span>'}
+        </div>
+        <div class="meta" style="margin-top:8px">
+          ${v.matricula?`<span>Matrícula: <b>${esc(v.matricula)}</b></span>`:''}
+          <span>${esc(v.correo)}</span><span>Registrado: ${fecha(v.creado)}</span></div>
+      </div>`).join('');
+  }
+
+  // ── VIDEOS (Impulso Digital) ──
+  async function cargarVideos(){
+    const d=await api('/api/videos');
+    const items=d.videos||[];
+    $('#v-info').textContent = ' Esta semana: '+items.length+'/'+(d.limite||5)+' videos.';
+    const cont=$('#lista-videos');
+    if(!items.length){ cont.innerHTML='<div class="vacio"><span class="em">🎬</span>No hay videos esta semana. Agrega hasta 5.</div>'; return; }
+    cont.innerHTML=items.map(v=>`
+      <div class="doc-card">
+        <div style="position:relative;padding-top:56%;border-radius:10px;overflow:hidden;margin-bottom:10px;background:#000">
+          <img src="https://img.youtube.com/vi/${esc(v.videoId)}/hqdefault.jpg" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">
+        </div>
+        <h4 style="margin:0 0 4px">${esc(v.titulo)}</h4>
+        <div class="cnt">por ${esc(v.autor||'—')} · ${fecha(v.creado)}</div>
+        <div class="acciones" style="margin-top:8px"><button class="btn btn-r" onclick="borrarVideo(${v.id})">Eliminar</button></div>
+      </div>`).join('');
+  }
+  async function agregarVideo(){
+    const titulo=$('#vi-titulo').value.trim(), url=$('#vi-url').value.trim();
+    if(!url){ toast('Pega el enlace de YouTube'); return; }
+    const r=await api('/api/videos',{method:'POST',body:JSON.stringify({titulo,url})});
+    if(r.ok){ toast('Video agregado'); $('#vi-titulo').value=''; $('#vi-url').value=''; cargarVideos(); }
+    else toast(r.error||'Error');
+  }
+  async function borrarVideo(id){ if(!confirm('¿Eliminar este video?'))return; await api('/api/videos?id='+id,{method:'DELETE'}); cargarVideos(); }
 
   // ── USUARIOS ──
   function toggleAreaUsuario(){ $('#u-area-wrap').style.visibility = $('#u-rol').value==='guardian'?'visible':'hidden'; }
