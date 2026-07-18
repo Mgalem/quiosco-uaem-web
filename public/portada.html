@@ -43,13 +43,7 @@
 
         /* Grid animada */
         .grid-bg {
-            position: absolute; inset: 0; z-index: 2;
-            background-image:
-                linear-gradient(rgba(100,180,255,0.05) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(100,180,255,0.05) 1px, transparent 1px);
-            background-size: 55px 55px;
-            animation: gridFlow 22s linear infinite;
-            pointer-events: none;
+            display: none; /* cuadrados de fondo quitados (se dejan solo las partículas) */
         }
         @keyframes gridFlow {
             0%   { transform: translateY(0); }
@@ -326,7 +320,7 @@
 
         <div class="badge-top">
             <div class="badge-dot"></div>
-            <span>Sistema de Información Universitaria</span>
+            <span>Web UAEM</span>
             <div class="badge-dot"></div>
         </div>
 
