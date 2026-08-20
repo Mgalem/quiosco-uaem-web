@@ -325,10 +325,12 @@ const guardarSesionesVis = () => guardarJSON('sesiones-visitantes.json', sesione
 
 const normCorreo = (c) => (c || '').toString().trim().toLowerCase();
 const correoValido = (c) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(c);
+// Debe ser nombre.apellido@atlatlahucan.uaem.edu.mx (parte local con al menos un punto)
 const esCorreoInstitucional = (c) =>
-  new RegExp('^[^@\\s]+@' + DOMINIO_ESTUDIANTE.replace(/\./g, '\\.') + '$', 'i').test(c);
+  new RegExp('^[a-z0-9]+(?:\\.[a-z0-9]+)+@' + DOMINIO_ESTUDIANTE.replace(/\./g, '\\.') + '$', 'i').test(c);
 const nuevoCodigo = () => String(crypto.randomInt(0, 1000000)).padStart(6, '0');
 const buscarVisitante = (correo) => visitantes.find(v => v.correo === normCorreo(correo));
+const buscarVisitantePorMatricula = (m) => { m = (m || '').toString().trim(); return m ? visitantes.find(v => v.matricula && v.matricula === m) : null; };
 
 async function enviarCodigo(correo, nombre, codigo) {
   const asunto = 'Tu código de acceso — UAEM Totolapan';
@@ -508,30 +510,37 @@ const server = http.createServer(async (req, res) => {
     return sendJson(res, 200, { ok: true });
   }
 
-  // ── VISITANTES (público): registro, verificación y login ────
+  // ── VISITANTES (público): registro (con contraseña), verificación y login ────
   if (metodo === 'POST' && ruta === '/api/visitante/registro') {
     const b = await jsonBody(req);
     const tipo = b.tipo === 'estudiante' ? 'estudiante' : 'normal';
     const nombre = (b.nombre || '').toString().trim();
     const correo = normCorreo(b.correo);
     const matricula = (b.matricula || '').toString().trim();
+    const password = (b.password || '').toString();
     if (nombre.length < 3) return sendJson(res, 400, { ok: false, error: 'Escribe tu nombre completo' });
     if (!correoValido(correo)) return sendJson(res, 400, { ok: false, error: 'El correo no es válido' });
+    if (password.length < 6) return sendJson(res, 400, { ok: false, error: 'La contraseña debe tener al menos 6 caracteres' });
     if (tipo === 'estudiante') {
       if (!matricula) return sendJson(res, 400, { ok: false, error: 'Escribe tu matrícula' });
       if (!esCorreoInstitucional(correo))
-        return sendJson(res, 400, { ok: false, error: 'El correo de estudiante debe ser @' + DOMINIO_ESTUDIANTE });
+        return sendJson(res, 400, { ok: false, error: 'El correo debe tener el formato nombre.apellido@' + DOMINIO_ESTUDIANTE });
+      const dup = buscarVisitantePorMatricula(matricula);
+      if (dup && dup.verificado && dup.correo !== correo)
+        return sendJson(res, 400, { ok: false, error: 'Esa matrícula ya tiene una cuenta' });
     }
     let v = buscarVisitante(correo);
     if (v && v.verificado) return sendJson(res, 200, { ok: true, yaRegistrado: true, mensaje: 'Ese correo ya tiene cuenta. Inicia sesión.' });
     const codigo = nuevoCodigo();
+    const salt = crypto.randomBytes(16).toString('hex');
+    const hash = hashPass(password, salt);
     if (!v) {
       v = { id: ++_seqVis, tipo, nombre, correo, matricula: tipo === 'estudiante' ? matricula : null,
-        verificado: false, codigo, codigoExpira: Date.now() + CODIGO_VIGENCIA, creado: new Date().toISOString() };
+        salt, hash, verificado: false, codigo, codigoExpira: Date.now() + CODIGO_VIGENCIA, creado: new Date().toISOString() };
       visitantes.push(v);
     } else {
       v.tipo = tipo; v.nombre = nombre; v.matricula = tipo === 'estudiante' ? matricula : null;
-      v.codigo = codigo; v.codigoExpira = Date.now() + CODIGO_VIGENCIA;
+      v.salt = salt; v.hash = hash; v.codigo = codigo; v.codigoExpira = Date.now() + CODIGO_VIGENCIA;
     }
     guardarVisitantes();
     try {
@@ -539,17 +548,19 @@ const server = http.createServer(async (req, res) => {
       return sendJson(res, 200, { ok: true, mensaje: 'Te enviamos un código a tu correo.', dev: r.dev ? codigo : undefined });
     } catch (e) { return sendJson(res, 500, { ok: false, error: e.message }); }
   }
+  // Login con matrícula (o correo) + contraseña — SIN código
   if (metodo === 'POST' && ruta === '/api/visitante/login') {
     const b = await jsonBody(req);
-    const correo = normCorreo(b.correo);
-    const v = buscarVisitante(correo);
-    if (!v) return sendJson(res, 404, { ok: false, error: 'Ese correo no está registrado. Regístrate primero.' });
-    v.codigo = nuevoCodigo(); v.codigoExpira = Date.now() + CODIGO_VIGENCIA; guardarVisitantes();
-    try {
-      const r = await enviarCodigo(correo, v.nombre, v.codigo);
-      return sendJson(res, 200, { ok: true, mensaje: 'Te enviamos un código a tu correo.', dev: r.dev ? v.codigo : undefined });
-    } catch (e) { return sendJson(res, 500, { ok: false, error: e.message }); }
+    const id = (b.identificador || b.matricula || b.correo || '').toString().trim();
+    const password = (b.password || '').toString();
+    const v = id.includes('@') ? buscarVisitante(id) : buscarVisitantePorMatricula(id);
+    if (!v || !v.verificado || !v.hash || hashPass(password, v.salt) !== v.hash)
+      return sendJson(res, 401, { ok: false, error: 'Matrícula o contraseña incorrectos' });
+    const token = crypto.randomBytes(24).toString('hex');
+    sesionesVis[token] = { correo: v.correo }; guardarSesionesVis();
+    return sendJson(res, 200, { ok: true, token, visitante: { tipo: v.tipo, nombre: v.nombre, correo: v.correo } });
   }
+  // Verificar el código de registro → activa la cuenta y entra
   if (metodo === 'POST' && ruta === '/api/visitante/verificar') {
     const b = await jsonBody(req);
     const correo = normCorreo(b.correo);

@@ -57,18 +57,25 @@
   var esc = function (s) { return (s || '').replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
 
   // ── Éxito: guardar sesión, revelar el sitio ──
-  function entrar(visitante) {
+  function enPortada() {
+    var p = location.pathname;
+    return p === '/' || /\/portada\.html$/i.test(p);
+  }
+  function entrar(visitante, fresco) {
     localStorage.setItem(KEY, token);
     window.UAEM_VISITANTE = Object.assign({ token: token }, visitante);
+    // Al INICIAR sesión (no al restaurar), llevar a la portada de bienvenida
+    if (fresco && !enPortada()) { location.href = 'portada.html'; return; }
     ov.remove();
     mostrarBadge(visitante);
     window.dispatchEvent(new CustomEvent('uaem-visitante', { detail: visitante }));
   }
   // Entrar como PERSONAL del panel (admin/guardián): mismo token que usa /admin.
-  function entrarAdmin(staffToken, nombre) {
+  function entrarAdmin(staffToken, nombre, fresco) {
     localStorage.setItem('uaem_token', staffToken);
     var v = { tipo: 'staff', nombre: nombre || 'Personal', token: staffToken };
     window.UAEM_VISITANTE = v;
+    if (fresco && !enPortada()) { location.href = 'portada.html'; return; }
     ov.remove();
     mostrarBadge(v);
     window.dispatchEvent(new CustomEvent('uaem-visitante', { detail: v }));
@@ -102,7 +109,8 @@
       '<label>Nombre completo</label><input id="v-nombre" placeholder="Ej. Jhonatan Nava">' +
       '<div id="v-mat-wrap"><label>Matrícula</label><input id="v-mat" placeholder="Tu matrícula"></div>' +
       '<label>Correo electrónico</label><input id="v-correo" type="email" placeholder="">' +
-      '<button class="btn" id="v-continuar">Continuar</button>' +
+      '<label>Contraseña</label><input id="v-pass" type="password" placeholder="Mínimo 6 caracteres" autocomplete="new-password">' +
+      '<button class="btn" id="v-continuar">Registrar cuenta</button>' +
       '<button class="link" id="v-ir-login">Ya tengo cuenta · Iniciar sesión</button>' +
       '<button class="link" id="v-ir-admin" style="color:#94a3b8">Acceso administrador</button>' +
       '<div class="msg" id="v-msg"></div></div>';
@@ -137,7 +145,7 @@
       .then(function (r) { return r.json(); }).then(function (j) {
         btn.disabled = false;
         if (!j.ok || !j.token) return msg(j.error || 'Usuario o contraseña incorrectos');
-        entrarAdmin(j.token, j.usuario && j.usuario.nombre);
+        entrarAdmin(j.token, j.usuario && j.usuario.nombre, true);
       }).catch(function () { btn.disabled = false; msg('Error de conexión'); });
   }
   function aplicarTipo() {
@@ -150,13 +158,18 @@
     estado.modo = 'login';
     ov.innerHTML =
       '<div class="caja"><div class="venado">🦌</div><h2>Iniciar sesión</h2>' +
-      '<p class="sub">Te enviaremos un código a tu correo</p>' +
-      '<label>Correo electrónico</label><input id="v-correo" type="email" placeholder="tucorreo@ejemplo.com">' +
-      '<button class="btn" id="v-enviar">Enviar código</button>' +
-      '<button class="link" id="v-ir-reg">No tengo cuenta · Registrarme</button>' +
+      '<p class="sub">Entra con tu matrícula y contraseña</p>' +
+      '<label>Matrícula</label><input id="v-id" placeholder="Tu matrícula" autocomplete="username">' +
+      '<label>Contraseña</label><input id="v-lpass" type="password" placeholder="Tu contraseña" autocomplete="current-password">' +
+      '<button class="btn" id="v-entrar">Iniciar sesión</button>' +
+      '<button class="link" id="v-ir-reg">No tengo cuenta · Registrar cuenta</button>' +
+      '<button class="link" id="v-ir-admin2" style="color:#94a3b8">Acceso administrador</button>' +
       '<div class="msg" id="v-msg"></div></div>';
-    document.getElementById('v-enviar').onclick = loginCorreo;
+    document.getElementById('v-entrar').onclick = loginPassword;
     document.getElementById('v-ir-reg').onclick = pintarRegistro;
+    document.getElementById('v-ir-admin2').onclick = pintarAdmin;
+    document.getElementById('v-lpass').onkeydown = function (e) { if (e.key === 'Enter') loginPassword(); };
+    setTimeout(function () { var el = document.getElementById('v-id'); if (el) el.focus(); }, 60);
   }
   function pintarCodigo(dev) {
     estado.modo = 'codigo';
@@ -178,24 +191,28 @@
     var nombre = document.getElementById('v-nombre').value.trim();
     var correo = document.getElementById('v-correo').value.trim();
     var matricula = estado.tipo === 'estudiante' ? document.getElementById('v-mat').value.trim() : '';
+    var password = document.getElementById('v-pass').value;
     if (nombre.length < 3) return msg('Escribe tu nombre completo');
     if (estado.tipo === 'estudiante' && !matricula) return msg('Escribe tu matrícula');
+    if (password.length < 6) return msg('La contraseña debe tener al menos 6 caracteres');
     var btn = document.getElementById('v-continuar'); btn.disabled = true; msg('Enviando…', true);
-    api('/api/visitante/registro', { tipo: estado.tipo, nombre: nombre, correo: correo, matricula: matricula })
+    api('/api/visitante/registro', { tipo: estado.tipo, nombre: nombre, correo: correo, matricula: matricula, password: password })
       .then(function (j) {
         btn.disabled = false;
-        if (j.yaRegistrado) { estado.correo = correo; return pintarLogin(); }
+        if (j.yaRegistrado) { return pintarLogin(); }
         if (!j.ok) return msg(j.error || 'No se pudo registrar');
         estado.correo = correo; pintarCodigo(j.dev);
       }).catch(function () { btn.disabled = false; msg('Error de conexión'); });
   }
-  function loginCorreo() {
-    var correo = document.getElementById('v-correo').value.trim();
-    var btn = document.getElementById('v-enviar'); btn.disabled = true; msg('Enviando…', true);
-    api('/api/visitante/login', { correo: correo }).then(function (j) {
+  function loginPassword() {
+    var id = document.getElementById('v-id').value.trim();
+    var password = document.getElementById('v-lpass').value;
+    if (!id || !password) return msg('Escribe tu matrícula y contraseña');
+    var btn = document.getElementById('v-entrar'); btn.disabled = true; msg('Entrando…', true);
+    api('/api/visitante/login', { identificador: id, password: password }).then(function (j) {
       btn.disabled = false;
-      if (!j.ok) return msg(j.error || 'No se pudo enviar');
-      estado.correo = correo; pintarCodigo(j.dev);
+      if (!j.ok || !j.token) return msg(j.error || 'Matrícula o contraseña incorrectos');
+      token = j.token; entrar(j.visitante, true);
     }).catch(function () { btn.disabled = false; msg('Error de conexión'); });
   }
   function verificar() {
@@ -205,7 +222,7 @@
     api('/api/visitante/verificar', { correo: estado.correo, codigo: codigo }).then(function (j) {
       btn.disabled = false;
       if (!j.ok || !j.token) return msg(j.error || 'Código incorrecto');
-      token = j.token; entrar(j.visitante);
+      token = j.token; entrar(j.visitante, true);
     }).catch(function () { btn.disabled = false; msg('Error de conexión'); });
   }
 
