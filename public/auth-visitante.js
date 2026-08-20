@@ -162,7 +162,7 @@
       '<label>Matrícula</label><input id="v-id" placeholder="Tu matrícula" autocomplete="username">' +
       '<label>Contraseña</label><input id="v-lpass" type="password" placeholder="Tu contraseña" autocomplete="current-password">' +
       '<button class="btn" id="v-entrar">Iniciar sesión</button>' +
-      '<button class="link" id="v-ir-reg">No tengo cuenta · Registrar cuenta</button>' +
+      '<button class="link" id="v-ir-reg">Registrar cuenta</button>' +
       '<button class="link" id="v-ir-admin2" style="color:#94a3b8">Acceso administrador</button>' +
       '<div class="msg" id="v-msg"></div></div>';
     document.getElementById('v-entrar').onclick = loginPassword;
