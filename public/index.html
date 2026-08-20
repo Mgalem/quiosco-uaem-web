@@ -274,6 +274,9 @@
         .card-green .icon-small  { background: linear-gradient(135deg, #238636 0%, #48bb78 100%); box-shadow: 0 8px 20px rgba(35, 134, 54, 0.35); }
         .card-purple .icon-small { background: linear-gradient(135deg, #6b46c1 0%, #9f7aea 100%); box-shadow: 0 8px 20px rgba(107, 70, 193, 0.35); }
         .card-gray .icon-small   { background: linear-gradient(135deg, #4a5568 0%, #718096 100%); box-shadow: 0 8px 20px rgba(74, 85, 104, 0.35); }
+        .card-gold   { background: linear-gradient(160deg, #ffffff 0%, #fffdf3 100%); }
+        .card-gold::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 5px; border-radius: 24px 24px 0 0; background: linear-gradient(90deg, #b8823e, #f5d089); }
+        .card-gold .icon-small   { background: linear-gradient(135deg, #b8823e 0%, #e0b878 100%); box-shadow: 0 8px 20px rgba(184, 130, 62, 0.35); }
 
         .menu-card h3 {
             font-size: 1.8rem;
@@ -456,13 +459,13 @@
             </div>
         </a>
 
-        <a href="videos.html" class="menu-card card-impulso" style="grid-column:1/-1;background:linear-gradient(120deg,#001f3f 0%,#00335b 45%,#0a4d8c 70%,#c89968 100%);color:#fff">
-            <div class="icon-small" style="background:rgba(255,255,255,.18)"><span class="material-symbols-outlined" style="color:#fff">play_circle</span></div>
-            <h3 style="color:#fff">Impulso Digital 🎬</h3>
-            <p style="color:rgba(255,255,255,.92)">Videos hechos por estudiantes para promover la escuela. ¡Míralos y anímate a crear el tuyo!</p>
+        <a href="videos.html" class="menu-card card-gold">
+            <div class="icon-small"><span class="material-symbols-outlined">play_circle</span></div>
+            <h3>Impulso Digital</h3>
+            <p>Videos hechos por estudiantes para promover la escuela. ¡Míralos y anímate a crear el tuyo!</p>
             <div class="card-footer">
-                <span class="btn-text" style="color:#fff">VER VIDEOS</span>
-                <div class="btn-circle" style="background:rgba(255,255,255,.22)"><span class="material-symbols-outlined" style="color:#fff">chevron_right</span></div>
+                <span class="btn-text">VER VIDEOS</span>
+                <div class="btn-circle"><span class="material-symbols-outlined">chevron_right</span></div>
             </div>
         </a>
 
