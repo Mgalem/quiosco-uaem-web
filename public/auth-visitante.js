@@ -162,7 +162,7 @@
       '<label>Matrícula</label><input id="v-id" placeholder="Tu matrícula" autocomplete="username">' +
       '<label>Contraseña</label><input id="v-lpass" type="password" placeholder="Tu contraseña" autocomplete="current-password">' +
       '<button class="btn" id="v-entrar">Iniciar sesión</button>' +
-      '<button class="link" id="v-ir-reg">Registrar cuenta</button>' +
+      '<button class="link" id="v-ir-reg">Registrarme</button>' +
       '<button class="link" id="v-ir-admin2" style="color:#94a3b8">Acceso administrador</button>' +
       '<div class="msg" id="v-msg"></div></div>';
     document.getElementById('v-entrar').onclick = loginPassword;
@@ -230,10 +230,10 @@
   function restaurarVisitante() {
     if (token) {
       api('/api/visitante/yo').then(function (j) {
-        if (j.ok) entrar(j.visitante); else pintarRegistro();
-      }).catch(pintarRegistro);
+        if (j.ok) entrar(j.visitante); else pintarLogin();
+      }).catch(pintarLogin);
     } else {
-      pintarRegistro();
+      pintarLogin();
     }
   }
   // 1º: ¿hay sesión de administrador guardada? (no vuelve a pedir contraseña)
