@@ -158,18 +158,32 @@
     estado.modo = 'login';
     ov.innerHTML =
       '<div class="caja"><div class="venado">🦌</div><h2>Iniciar sesión</h2>' +
-      '<p class="sub">Entra con tu matrícula y contraseña</p>' +
-      '<label>Matrícula</label><input id="v-id" placeholder="Tu matrícula" autocomplete="username">' +
+      '<p class="sub">Entra con tu contraseña</p>' +
+      '<div class="tipos"><div class="tipo" data-t="estudiante">🎓 Estudiante</div>' +
+      '<div class="tipo" data-t="normal">👤 Visitante</div></div>' +
+      '<label id="v-id-label">Matrícula</label><input id="v-id" placeholder="Tu matrícula" autocomplete="username">' +
       '<label>Contraseña</label><input id="v-lpass" type="password" placeholder="Tu contraseña" autocomplete="current-password">' +
       '<button class="btn" id="v-entrar">Iniciar sesión</button>' +
       '<button class="link" id="v-ir-reg">Registrarme</button>' +
       '<button class="link" id="v-ir-admin2" style="color:#94a3b8">Acceso administrador</button>' +
       '<div class="msg" id="v-msg"></div></div>';
+    ov.querySelectorAll('.tipo').forEach(function (el) {
+      el.onclick = function () { estado.tipo = el.dataset.t; aplicarTipoLogin(); };
+    });
     document.getElementById('v-entrar').onclick = loginPassword;
     document.getElementById('v-ir-reg').onclick = pintarRegistro;
     document.getElementById('v-ir-admin2').onclick = pintarAdmin;
     document.getElementById('v-lpass').onkeydown = function (e) { if (e.key === 'Enter') loginPassword(); };
+    aplicarTipoLogin();
     setTimeout(function () { var el = document.getElementById('v-id'); if (el) el.focus(); }, 60);
+  }
+  function aplicarTipoLogin() {
+    ov.querySelectorAll('.tipo').forEach(function (el) { el.classList.toggle('act', el.dataset.t === estado.tipo); });
+    var esEst = estado.tipo === 'estudiante';
+    var lbl = document.getElementById('v-id-label');
+    var inp = document.getElementById('v-id');
+    if (lbl) lbl.textContent = esEst ? 'Matrícula' : 'Correo electrónico';
+    if (inp) { inp.placeholder = esEst ? 'Tu matrícula' : 'tucorreo@ejemplo.com'; inp.type = esEst ? 'text' : 'email'; }
   }
   function pintarCodigo(dev) {
     estado.modo = 'codigo';
