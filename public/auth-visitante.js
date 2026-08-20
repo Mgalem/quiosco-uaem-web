@@ -83,14 +83,19 @@
     window.dispatchEvent(new CustomEvent('uaem-visitante', { detail: v }));
   }
   function mostrarBadge(v) {
-    var b = document.getElementById('uaemv-badge');
-    if (b) b.remove();
-    b = document.createElement('div');
-    b.id = 'uaemv-badge';
-    var ic = v.tipo === 'estudiante' ? '🎓 ' : v.tipo === 'staff' ? '🔑 ' : '👤 ';
-    b.innerHTML = ic + esc(v.nombre.split(' ')[0]) + ' <button id="uaemv-salir">Salir</button>';
-    document.body.appendChild(b);
-    document.getElementById('uaemv-salir').onclick = salir;
+    function poner() {
+      var b = document.getElementById('uaemv-badge');
+      if (b) b.remove();
+      b = document.createElement('div');
+      b.id = 'uaemv-badge';
+      var ic = v.tipo === 'estudiante' ? '🎓 ' : v.tipo === 'staff' ? '🔑 ' : '👤 ';
+      b.innerHTML = ic + esc(v.nombre.split(' ')[0]) + ' <button id="uaemv-salir">Salir</button>';
+      document.body.appendChild(b);
+      document.getElementById('uaemv-salir').onclick = salir;
+    }
+    // Puede llamarse antes de que exista <body> (restauración en el <head>)
+    if (document.body) poner();
+    else document.addEventListener('DOMContentLoaded', poner);
   }
   function salir() {
     try { api('/api/visitante/logout', {}); } catch (e) {}
