@@ -63,6 +63,7 @@
   }
   function entrar(visitante, fresco) {
     localStorage.setItem(KEY, token);
+    localStorage.removeItem('uaem_guest');
     window.UAEM_VISITANTE = Object.assign({ token: token }, visitante);
     // Al INICIAR sesión (no al restaurar), llevar a la portada de bienvenida
     if (fresco && !enPortada()) { location.href = 'portada.html'; return; }
@@ -73,6 +74,7 @@
   // Entrar como PERSONAL del panel (admin/guardián): mismo token que usa /admin.
   function entrarAdmin(staffToken, nombre, fresco) {
     localStorage.setItem('uaem_token', staffToken);
+    localStorage.removeItem('uaem_guest');
     var v = { tipo: 'staff', nombre: nombre || 'Personal', token: staffToken };
     window.UAEM_VISITANTE = v;
     if (fresco && !enPortada()) { location.href = 'portada.html'; return; }
@@ -94,33 +96,28 @@
     try { api('/api/visitante/logout', {}); } catch (e) {}
     var st = localStorage.getItem('uaem_token');
     if (st) { try { fetch(API + '/api/logout', { method: 'POST', headers: { 'Authorization': 'Bearer ' + st } }); } catch (e) {} }
-    localStorage.removeItem(KEY); localStorage.removeItem('uaem_token'); token = '';
+    localStorage.removeItem(KEY); localStorage.removeItem('uaem_token'); localStorage.removeItem('uaem_guest'); token = '';
     window.location.reload();
   }
 
   // ── Pantallas ──
   function pintarRegistro() {
     estado.modo = 'registro';
+    estado.tipo = 'estudiante';
     ov.innerHTML =
-      '<div class="caja"><div class="venado">🦌</div><h2>Bienvenido</h2>' +
-      '<p class="sub">Regístrate para entrar a la información de la subsede</p>' +
-      '<div class="tipos"><div class="tipo" data-t="estudiante">🎓 Estudiante</div>' +
-      '<div class="tipo" data-t="normal">👤 Visitante</div></div>' +
+      '<div class="caja"><div class="venado">🦌</div><h2>Crear cuenta de estudiante</h2>' +
+      '<p class="sub">Regístrate con tu correo institucional</p>' +
       '<label>Nombre completo</label><input id="v-nombre" placeholder="Ej. Jhonatan Nava">' +
-      '<div id="v-mat-wrap"><label>Matrícula</label><input id="v-mat" placeholder="Tu matrícula"></div>' +
-      '<label>Correo electrónico</label><input id="v-correo" type="email" placeholder="">' +
+      '<label>Matrícula</label><input id="v-mat" placeholder="Tu matrícula">' +
+      '<label>Correo electrónico</label><input id="v-correo" type="email" placeholder="nombre.apellido@' + DOMINIO + '">' +
       '<label>Contraseña</label><input id="v-pass" type="password" placeholder="Mínimo 6 caracteres" autocomplete="new-password">' +
       '<button class="btn" id="v-continuar">Registrar cuenta</button>' +
       '<button class="link" id="v-ir-login">Ya tengo cuenta · Iniciar sesión</button>' +
       '<button class="link" id="v-ir-admin" style="color:#94a3b8">Acceso administrador</button>' +
       '<div class="msg" id="v-msg"></div></div>';
-    ov.querySelectorAll('.tipo').forEach(function (el) {
-      el.onclick = function () { estado.tipo = el.dataset.t; aplicarTipo(); };
-    });
     document.getElementById('v-continuar').onclick = registrar;
     document.getElementById('v-ir-login').onclick = pintarLogin;
     document.getElementById('v-ir-admin').onclick = pintarAdmin;
-    aplicarTipo();
   }
   function pintarAdmin() {
     estado.modo = 'admin';
@@ -158,32 +155,30 @@
     estado.modo = 'login';
     ov.innerHTML =
       '<div class="caja"><div class="venado">🦌</div><h2>Iniciar sesión</h2>' +
-      '<p class="sub">Entra con tu contraseña</p>' +
-      '<div class="tipos"><div class="tipo" data-t="estudiante">🎓 Estudiante</div>' +
-      '<div class="tipo" data-t="normal">👤 Visitante</div></div>' +
-      '<label id="v-id-label">Matrícula</label><input id="v-id" placeholder="Tu matrícula" autocomplete="username">' +
+      '<p class="sub">Estudiantes: entra con tu matrícula y contraseña</p>' +
+      '<label>Matrícula</label><input id="v-id" placeholder="Tu matrícula" autocomplete="username">' +
       '<label>Contraseña</label><input id="v-lpass" type="password" placeholder="Tu contraseña" autocomplete="current-password">' +
       '<button class="btn" id="v-entrar">Iniciar sesión</button>' +
+      '<button class="btn" id="v-visitante" style="background:#eef2f8;color:#1a2638">👤 Entrar como visitante</button>' +
       '<button class="link" id="v-ir-reg">Registrarme</button>' +
       '<button class="link" id="v-ir-admin2" style="color:#94a3b8">Acceso administrador</button>' +
       '<div class="msg" id="v-msg"></div></div>';
-    ov.querySelectorAll('.tipo').forEach(function (el) {
-      el.onclick = function () { estado.tipo = el.dataset.t; aplicarTipoLogin(); };
-    });
     document.getElementById('v-entrar').onclick = loginPassword;
+    document.getElementById('v-visitante').onclick = entrarVisitante;
     document.getElementById('v-ir-reg').onclick = pintarRegistro;
     document.getElementById('v-ir-admin2').onclick = pintarAdmin;
     document.getElementById('v-lpass').onkeydown = function (e) { if (e.key === 'Enter') loginPassword(); };
-    aplicarTipoLogin();
     setTimeout(function () { var el = document.getElementById('v-id'); if (el) el.focus(); }, 60);
   }
-  function aplicarTipoLogin() {
-    ov.querySelectorAll('.tipo').forEach(function (el) { el.classList.toggle('act', el.dataset.t === estado.tipo); });
-    var esEst = estado.tipo === 'estudiante';
-    var lbl = document.getElementById('v-id-label');
-    var inp = document.getElementById('v-id');
-    if (lbl) lbl.textContent = esEst ? 'Matrícula' : 'Correo electrónico';
-    if (inp) { inp.placeholder = esEst ? 'Tu matrícula' : 'tucorreo@ejemplo.com'; inp.type = esEst ? 'text' : 'email'; }
+  // Entrar como VISITANTE (sin cuenta): solo ve la info, no el bot.
+  function entrarVisitante() {
+    localStorage.setItem('uaem_guest', '1');
+    var v = { tipo: 'normal', nombre: 'Visitante' };
+    window.UAEM_VISITANTE = v;
+    if (!enPortada()) { location.href = 'portada.html'; return; }
+    ov.remove();
+    mostrarBadge(v);
+    window.dispatchEvent(new CustomEvent('uaem-visitante', { detail: v }));
   }
   function pintarCodigo(dev) {
     estado.modo = 'codigo';
@@ -241,11 +236,22 @@
   }
 
   // ── Arranque: ¿ya hay sesión válida? ──
+  function revelarGuest() {
+    var v = { tipo: 'normal', nombre: 'Visitante' };
+    window.UAEM_VISITANTE = v;
+    ov.remove();
+    mostrarBadge(v);
+    window.dispatchEvent(new CustomEvent('uaem-visitante', { detail: v }));
+  }
   function restaurarVisitante() {
     if (token) {
       api('/api/visitante/yo').then(function (j) {
-        if (j.ok) entrar(j.visitante); else pintarLogin();
-      }).catch(pintarLogin);
+        if (j.ok) entrar(j.visitante);
+        else if (localStorage.getItem('uaem_guest') === '1') revelarGuest();
+        else pintarLogin();
+      }).catch(function () { if (localStorage.getItem('uaem_guest') === '1') revelarGuest(); else pintarLogin(); });
+    } else if (localStorage.getItem('uaem_guest') === '1') {
+      revelarGuest();
     } else {
       pintarLogin();
     }
